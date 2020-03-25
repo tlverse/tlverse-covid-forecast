@@ -6,7 +6,35 @@ generate_analytic_data <- function(){
   new_names <- c("id","state", "country", "lat", "long", "date", "cases", "deaths")
   
   setnames(main_data, old_names, new_names)
-  #TODO: merge in helper datasets
+  main_data$date <- as.Date(main_data$date)
+  
+  ###TODO: merge in helper datasets
+  #1. Add intervention data (school, restrictions,quarantine)
+  #2. Add population, density, urban population, median age, sex info
+  #3. Add test and test population
+  #4. Add percent smokers and lung disease info
+  
+  restrictions_data <- fread("Data/covid19-global-forecasting-week-1/restrictions_info_data.csv")
+  
+  main_data$date <- as.Date(main_data$date)
+  restrictions_data$schools_national_date <- as.Date(restrictions_data$schools_national_date)
+  restrictions_data$schools_localized_date <- as.Date(restrictions_data$schools_localized_date)
+  restrictions_data$restrictions_date <- as.Date(restrictions_data$restrictions_date)
+  restrictions_data$quarantine_date <- as.Date(restrictions_data$quarantine_date)
+  
+  main_data <- merge(main_data, restrictions_data[,c("country","population","tests","testpop","density",
+                                                     "median_age","urbanpop","smokers", "sex_ratio",  
+                                                     "quarantine_date","restrictions_date",
+                                                     "schools_national_date","schools_localized_date",
+                                                     "hospital_bed","lung_disease")], by = c("country"), all.x = TRUE)
+  
+  main_data <- main_data %>%
+    group_by(country) %>%
+    mutate(intervention_school_national = ifelse(date < schools_national_date,0,1)) %>%
+    mutate(intervention_school_local = ifelse(date < schools_localized_date,0,1)) %>%
+    mutate(intervention_restriction = ifelse(date < restrictions_date,0,1)) %>%
+    mutate(intervention_quarantine = ifelse(date < quarantine_date,0,1)) %>%
+    select(-c(schools_national_date,schools_localized_date,restrictions_date,quarantine_date))
   
   data <- main_data
   
