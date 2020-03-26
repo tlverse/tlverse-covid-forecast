@@ -52,16 +52,21 @@ generate_analytic_data <- function(){
   return(data)
 }
 
-generate_task <- function(){
-  covariates <- c("case_days","log_case_days")
+# training_data: data.table with cols region, time (relative), and X,Y nodes
+# t argument indicates total amount of time (relative) to consider in folds.
+generate_task <- function(main_data){
   
-  #TODO: carefully consider fold structure
-  folds <- make_folds(n=NULL, t=NULL, id=NULL, time=NULL, 
-                      first_window = NULL, validation_size=30,
-                      gap = 0, batch=1, 
-                      timefold_fun = folds_rolling_origin_pooled)
-  # (time series structures, but also consider multiple regions)
-  task <- make_sl3_Task(main_data, outcome="cases", covariates = covariates, id="region")
+  covars <- colnames(main_data)[-which(names(main_data) %in% c("cases","region"))]
+  
+  folds <- origami::make_folds(main_data, t = ?, id = main_data$region, 
+                               time = main_data$time,
+                               fold_fun = folds_rolling_origin_pooled, 
+                               first_window = 30, validation_size = 30, gap = 0, 
+                               batch = 5) 
+  
+  # TODO: consider imputation of covariates, drop_missing_outcome
+  task <- make_sl3_Task(main_data, outcome = "cases", covariates = covariates, 
+                        folds = folds)
   return(task)
 }
 
