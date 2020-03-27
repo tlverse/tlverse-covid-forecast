@@ -1,4 +1,5 @@
 #' @import data.table
+#' @import tidyverse
 generate_analytic_data <- function(){
   main_data <- fread("Data/covid19-global-forecasting-week-1/train.csv")
   old_names <- c("Id", "Province/State", "Country/Region", "Lat", "Long", "Date", 
@@ -38,7 +39,9 @@ generate_analytic_data <- function(){
   
   data <- main_data
   
+  
   #TODO: add in features
+  data[, days:=as.numeric(difftime(date,min(date),unit="days"))]
   data[, region:=paste(country, state)]
   data[, first_case_date:=min(date[cases>0]), by=list(region)]
   data[, case_days:=as.numeric(difftime(date, first_case_date,unit="days"))]
@@ -54,18 +57,21 @@ generate_analytic_data <- function(){
 
 # training_data: data.table with cols region, time (relative), and X,Y nodes
 # t argument indicates total amount of time (relative) to consider in folds.
-generate_task <- function(main_data){
+#' @import origami
+generate_task <- function(data){
   
-  covars <- colnames(main_data)[-which(names(main_data) %in% c("cases","region"))]
-  
-  folds <- origami::make_folds(main_data, t = ?, id = main_data$region, 
-                               time = main_data$time,
+  #covariates <- colnames(data)[-which(names(data) %in% c("cases","region"))]
+  covariates <- c("hospital_bed", "lung_disease")
+  folds <- origami::make_folds(data, t = max(data$day), id = data$region, 
+                               time = data$day,
                                fold_fun = folds_rolling_origin_pooled, 
-                               first_window = 30, validation_size = 30, gap = 0, 
-                               batch = 5) 
+                               first_window = 20, 
+                               validation_size = 30, 
+                               gap = 0, 
+                               batch = 1) 
   
   # TODO: consider imputation of covariates, drop_missing_outcome
-  task <- make_sl3_Task(main_data, outcome = "cases", covariates = covariates, 
+  task <- make_sl3_Task(data, outcome = "cases", covariates = covariates, 
                         folds = folds)
   return(task)
 }
