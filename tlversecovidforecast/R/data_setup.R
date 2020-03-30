@@ -12,7 +12,8 @@ na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 ################################################################################
 files <- list.files(pattern = "*.csv", 
                     path = here("Data", "week2"))
-path <- paste0("~/tlverse-covid-forecast/Data/week2/",files)
+path <- here("Data/week2", files)
+#path <- paste0("/tlverse-covid-forecast/Data/week2/",files)
 listdata <- lapply(path, read.csv)
 names(listdata) <- files
 
@@ -148,7 +149,8 @@ colnames(country_codes)[c(1,3)] <- c("country", "country_code")
 ################################################################################
 files <- list.files(pattern = "*.csv", 
                     path = here("Data", "covid19-global-forecasting-week-1"))
-path <- paste0("~/tlverse-covid-forecast/Data/covid19-global-forecasting-week-1/",files)
+path <- here("Data/covid19-global-forecasting-week-1/", files)
+#path <- paste0("~/tlverse-covid-forecast/Data/covid19-global-forecasting-week-1/",files)
 listdata <- lapply(path, read.csv)
 names(listdata) <- files
 
@@ -563,7 +565,10 @@ setnames(main_data, old_names, new_names)
 main_data$date <- as.Date(main_data$date)
 
 restrictions <- fread("Data/covid19-global-forecasting-week-1/restrictions_info_data.csv")
-
+restrictions$quarantine_date <- as.Date(restrictions$quarantine_date)
+restrictions$restrictions_date <- as.Date(restrictions$restrictions_date)
+restrictions$schools_national_date <- as.Date(restrictions$schools_national_date)
+restrictions$schools_localized_date <- as.Date(restrictions$schools_localized_date)
 
 main_data <- merge(main_data, restrictions[,c("country","population", "tests",
                                               "testpop","density", "median_age",
@@ -583,7 +588,7 @@ main_data <- main_data %>%
   mutate(intervention_quarantine = ifelse(date < quarantine_date,0,1)) %>%
   select(-c(schools_national_date,schools_localized_date,restrictions_date,quarantine_date))
 
-data <- main_data
+data <- data.table(main_data)
 
 ################################################################################
 #TODO: add in features
