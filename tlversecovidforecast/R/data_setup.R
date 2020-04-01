@@ -678,7 +678,7 @@ main3_noedu_merged <- main3_noedu_merged %>%
     (is.na(educ_date_localized) | (Date <= educ_date_localized)) , 0, 1))
 main3_noedu_merged <- main3_noedu_merged[,-c(41:42)]
 
-main3_edu <- filter(main3, !(is.na(schools_national_date) & is.na(schools_localized_date)))
+main3_edu <- filter(main2, !(is.na(schools_national_date) & is.na(schools_localized_date)))
 main4 <- rbind(main3_edu, main3_noedu_merged)
 main4$days_schools_localized <- ifelse(
   main4$days_schools_localized < main4$days_schools_national, 
