@@ -92,13 +92,24 @@ metalearner_linear_bound <- function(alpha, X){
 #' @import sl3
 generate_learners <- function(){
   #TODO integrate timeseries learners + mechanistic models
-  
+  grid_params = list(max_depth = c(2,5,8),
+                     eta = c(0.005, 0.1, 0.25))
+  grid = expand.grid(grid_params, KEEP.OUT.ATTRS = FALSE)
+  params_default = list(nthread = getOption("sl.cores.learners", 1))
+  xgb_learners = apply(grid, MARGIN = 1, function(params_tune) {
+    do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
+  })
+  lrnr_lasso <- make_learner(Lrnr_glmnet, alpha = 1)
   lrnr_glm <- make_learner(Lrnr_glm)
-  lrnr_rf <- make_learner(Lrnr_randomForest)
+  lrnr_ranger <- make_learner(Lrnr_ranger)
+  lrnr_earth <- make_learner(Lrnr_earth)
+  stack <- make_learner(Stack, unlist(list(xgb_learners, lrnr_glm, lrnr_lasso, lrnr_ranger, lrnr_earth), recursive = TRUE))
+  lrnr_glmnet <- make_learner(Lrnr_glmnet)
+  screener <- make_learner(sl3:::Lrnr_screener_coefs, lrnr_glmnet, 1e-2)
+  pipe <- make_learner(Pipeline, screener, stack)
+  metalearner_competition <- make_learner(Lrnr_solnp, metalearner_linear_bound, loss_squared_error)
   
-  metalearner_competition <- make_learner(Lrnr_solnp, metalearner_linear_bound, loss_competition)
-  
-  sl <- make_learner(Lrnr_sl, list(lrnr_glm, lrnr_rf), metalearner_competition)
+  sl <- make_learner(Lrnr_sl, pipe, metalearner_competition)
   
   return(sl)
 }

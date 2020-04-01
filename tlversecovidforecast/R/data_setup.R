@@ -903,20 +903,18 @@ setup_data <- function(){
                                      "id", "cases", "fatalities", "forecastid", 
                                      "recoveries")
   data <- data.table(final)
-<<<<<<< HEAD
+
   ############################### add in features ################################
   
   case_days_or_zero <- function(date, first_date){
     case_days <- as.numeric(difftime(date, first_date, unit="days"))
-    case_days[which(is.na(case_days)|(case_days<0))] <- 0
+    case_days[which(is.na(case_days)|(!is.finite(case_days))|(case_days<0))] <- 0
     
     return(case_days)
   }
   
-=======
   
   ############################### add in features ##############################
->>>>>>> dca6ead5315c21edf69203dd6a35b9349b7c5614
   data[, days:=as.numeric(difftime(date,min(date),unit="days"))]
   
   data[, first_case_date:=min(date[cases>0], na.rm=TRUE),by=list(region)]
@@ -927,12 +925,9 @@ setup_data <- function(){
   data[, case_days:=case_days_or_zero(date, first_case_date)]
   data[, case10_days:=case_days_or_zero(date, tenth_case_date)]
   data[, case100_days:=case_days_or_zero(date, hundreth_case_date)]
-  data[, case10_days:=as.numeric(difftime(date, tenth_case_date,unit="days")), by=list(region)]
-  
-  data[, case100_days:=as.numeric(difftime(date, hundreth_case_date,unit="days")), by=list(region)]
+
   data[, max_cases:=max(cases, na.rm=TRUE), by=list(region)]
   
-<<<<<<< HEAD
   data[, log_cases:=log(cases+1)]
   data[, log_fatalities:=log(fatalities+1)]
   ################################################################################
