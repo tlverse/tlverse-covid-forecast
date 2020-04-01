@@ -7,6 +7,9 @@ load_all("tlversecovidforecast")
 
 data <- fread(here("Data/training.csv"))
 task <- generate_task(data)
+
+fold <- task$folds[[1]]
+training(task)$data
 sl <- generate_learners()
 
 
