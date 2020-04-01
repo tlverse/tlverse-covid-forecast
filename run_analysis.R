@@ -5,41 +5,41 @@ load_all("tlversecovidforecast")
 # run this to regenerate processed data
 # setup_data()
 
-data <- fread(here("Data/training_processed.csv"))
-log_cases_task <- generate_task(data, "log_cases")
 
 # simple covariate screening
-lrnr_glmnet <- make_learner(Lrnr_glmnet)
-lg_fit <- lrnr_glmnet$train(log_cases_task)
-
 sl <- generate_learners()
+sl3_debug_mode()
 
 
-fit <- sl$train(task)
+data <- fread(here("Data/training_processed.csv"))
+test_data <- fread(here("Data/test_processed.csv"))
 
-# TODO: why doesn't this work
-fit$cv_risk(loss_competition)
+# generate case preds
+log_cases_task <- generate_task(data, "log_cases")
+test_log_cases_task <- generate_task(test_data, "log_cases")
 
-# manually calculate loss
-cv_preds <- fit$predict_fold(task, "validation")
-get_val_obs <- function(fold, task){
-  list(obs = validation(task$Y))
-}
+cases_fit <- sl$train(log_cases_task)
+cv_risk_table <- cases_fit$cv_risk(loss_squared_error)
+print(cv_risk_table)
 
-cv_obs <- cross_validate(get_val_obs, task$folds, task)$obs
-rmse <- sqrt(mean(loss_competition(cv_preds, cv_obs)))
+test_preds <- cases_fit$predict(test_log_cases_task)
+test_cases_preds <- exp(test_preds) - 1
 
-# compare against null (mean) model
-# TODO: why doesn't this work
-cv_mean <- make_learner(Lrnr_cv, make_learner(Lrnr_mean))
-cv_mean_fit <- cv_mean$train(task)
-cv_mean_preds <- cv_mean_fit$predict(task)
+# generate fatalities preds
+log_fatalities_task <- generate_task(data, "log_fatalities")
+test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
 
-# manually do this
-cv_mean <- function(fold, task){
-  
-  list(preds = rep(mean(training(task)$Y),length(validation())))
-}
+fatalities_fit <- sl$train(log_fatalities_task)
+test_preds <- fit$predict(test_log_fatalities_task)
+test_fatalities_preds <- exp(test_preds) - 1
 
-cv_mean_preds <- cross_validate(cv_mean, task$folds, task)$preds
-null_rmse <- sqrt(mean(loss_competition(cv_mean_preds, cv_obs)))
+# generate submission
+ex_submission <- fread(here("Data/week2/submission.csv"))
+names(ex_submission)
+
+submission <- data.table(ForecastId=test_data$forecastid,
+                         ConfirmedCases=test_cases_preds,
+                         Fatalities=test_fatalities_preds)
+
+submission <- submission[order(ForecastId)]
+write.csv(submission, here("Data/our_submission.csv",row.names=FALSE))
