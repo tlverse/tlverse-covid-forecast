@@ -432,7 +432,7 @@ setup_data <- function(){
                          prison_rate = sum(datfinal_fix_britain$prison_rate),
                          country_code = "GBR")
   datfinal_fix <- rbind(datfinal_fix[-c(4:8),], datfinal_fix_brit)
-  datfinal_fix$country_code <-c("VGB", "BRN", "CIV", "GBR")
+  datfinal_fix$country_code <- c("CIV", "FSM", NA, "GBR")
   dfinal <- rbind(datfinal_fix, datfinal[-which(is.na(datfinal$country_code)),])[,-1]
   datfinal <- merge(dfinal, country_codes[,c(1,3)], by = "country_code", all.x = TRUE)
   sum(is.na(datfinal$country_code))
@@ -498,8 +498,9 @@ setup_data <- function(){
                                       baseline_data$sars_deaths)
   baseline_data$sars_recovered <- ifelse(is.na(baseline_data$sars_recovered), 0,
                                          baseline_data$sars_recovered)
+  baseline_data <- unique(baseline_data)
+  baseline_data[duplicated(baseline_data$country_code),]$country_code
   write.csv(baseline_data, file = here("Data", "baselinecovs.csv"), row.names = F)
-  
   
   ##############################################################################
   # time-varying covariate data 
@@ -599,9 +600,9 @@ setup_data <- function(){
   main <- rbind(train_data, test_data)
   
   # make sure we have same test and train data at end
-  nrow(main) #32046
+  nrow(main) #32928
   nrow(test_data) #12642
-  nrow(train_data) #19404
+  nrow(train_data) #20286
   
   ######################## merge time-varying covariates #######################
   main_us <- filter(main, region == "US") 
@@ -884,8 +885,9 @@ setup_data <- function(){
   econ_gdpbills <- substring(econ_gdpbills, 2) 
   all2$econ_gdpbills <- as.numeric(gsub(",","", econ_gdpbills))
   
-  # change facs to numeric
+  # change econ facs to numeric
   facs <- names(all2)[sapply(all2,is.factor)]
+  facs <- facs[-which(facs %in% c("Country_Region","country_code","continent"))]
   all2[facs] <- sapply(all2[facs], as.character)
   all2[facs] <- sapply(all2[facs], as.numeric)
   
@@ -903,8 +905,8 @@ setup_data <- function(){
                                      "id", "cases", "fatalities", "forecastid", 
                                      "recoveries")
   data <- data.table(final)
-
-  ############################### add in features ################################
+  
+  ############################### add in features ##############################
   
   case_days_or_zero <- function(date, first_date){
     case_days <- as.numeric(difftime(date, first_date, unit="days"))
@@ -913,21 +915,15 @@ setup_data <- function(){
     return(case_days)
   }
   
-  
   ############################### add in features ##############################
   data[, days:=as.numeric(difftime(date,min(date),unit="days"))]
-  
   data[, first_case_date:=min(date[cases>0], na.rm=TRUE),by=list(region)]
   data[, tenth_case_date:=min(date[cases>10], na.rm=TRUE), by=list(region)]
   data[, hundreth_case_date:=min(date[cases>100], na.rm=TRUE), by=list(region)]
-  
-  
   data[, case_days:=case_days_or_zero(date, first_case_date)]
   data[, case10_days:=case_days_or_zero(date, tenth_case_date)]
   data[, case100_days:=case_days_or_zero(date, hundreth_case_date)]
-
   data[, max_cases:=max(cases, na.rm=TRUE), by=list(region)]
-  
   data[, log_cases:=log(cases+1)]
   data[, log_fatalities:=log(fatalities+1)]
   ################################################################################
@@ -960,7 +956,7 @@ setup_data <- function(){
                  "pollution_2014", "pollution_2015", "pollution_2016", "pollution_2017", 
                  "pop65above_year", "pop65above_percent", "prisoncount_year", 
                  "prison_count", "prisonrate_year", "prison_rate", "rail_year", 
-                 "rail_millionpassengerkm", "delta_continent", "delta_tests", 
+                 "rail_millionpassengerkm", "delta_tests", 
                  "delta_density", "delta_median_age", "delta_urbanpop", "delta_hospital_bed", 
                  "delta_smokers", "delta_sex0", "delta_sex14", "delta_sex25", 
                  "delta_sex54", "delta_sex64", "delta_sex65plus", "delta_sex_ratio", 
