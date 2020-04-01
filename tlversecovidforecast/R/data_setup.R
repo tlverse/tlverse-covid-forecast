@@ -817,8 +817,11 @@ setup_data <- function(){
   # main9 <- merge(main8, updates[,-1], by = c("Date", "country_code"), all.x = TRUE)
   
   main9 <- main8[order(main8$Country_Region, main8$region, main8$Date),]
-  main9 <- main9[,-c(15:16,18:20)]
-  all <- main9[,c(1:8, 105, 9, 28:32,15,33:39, 10, 12:14,16:27,40:104)]
+  cols_remove <- c("quarantine_date", "schools_national_date",
+                   "schools_localized_date", "school_localized", 
+                   "restrictions_date", "testpop")
+  main9 <- main9[,-c(which(colnames(main9) %in% cols_remove))]
+  all <- main9[,c(1:8,104,9,27:31,14,32:38,10:13,15:26,39:103)]
   
   ############################# imputation #######################################
   
