@@ -29,7 +29,7 @@ covariate_list <- function(){
                  "pollution_2017", 
                  "pop65above_percent",  
                  "prison_count", "prison_rate", 
-                 "rail_millionpassengerkm", "delta_continent", "delta_tests", 
+                 "rail_millionpassengerkm", "delta_tests", 
                  "delta_density", "delta_median_age", "delta_urbanpop", "delta_hospital_bed", 
                  "delta_smokers", "delta_sex0", "delta_sex14", "delta_sex25", 
                  "delta_sex54", "delta_sex64", "delta_sex65plus", "delta_sex_ratio", 
