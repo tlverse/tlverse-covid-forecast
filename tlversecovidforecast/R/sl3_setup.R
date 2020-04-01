@@ -6,8 +6,8 @@ generate_task <- function(data){
   
   #covariates <- colnames(data)[-which(names(data) %in% c("cases","region"))]
   covariates <- c("hospital_bed", "lung_disease")
-  folds <- origami::make_folds(data, t = max(data$day), id = data$region, 
-                               time = data$day,
+  folds <- origami::make_folds(data, t = max(data$days), id = data$region, 
+                               time = data$days,
                                fold_fun = folds_rolling_origin_pooled, 
                                first_window = 20, 
                                validation_size = 30, 
@@ -46,8 +46,3 @@ generate_learners <- function(){
   return(sl)
 }
 
-fit_learners <- function(){
-  fit <- sl$train(task)
-  cv_preds <- fit$predict_fold(task, "validation")
-  rmse <- sqrt(mean(loss_competition(cv_preds, task$Y)))
-}
