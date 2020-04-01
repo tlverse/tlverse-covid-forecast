@@ -15,7 +15,12 @@ generate_task <- function(data){
                                batch = 1) 
   
   # TODO: consider imputation of covariates, drop_missing_outcome
-  task <- make_sl3_Task(data, outcome = "cases", covariates = covariates, 
+  nodes <- list(outcome = "cases",
+                covariates = covariates
+                time = "days",
+                id = "region")
+  
+  task <- make_sl3_Task(data, nodes=nodes,
                         folds = folds)
   return(task)
 }
