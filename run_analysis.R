@@ -5,11 +5,13 @@ load_all("tlversecovidforecast")
 # run this to regenerate processed data
 # setup_data()
 
-data <- fread(here("Data/training.csv"))
-task <- generate_task(data)
+data <- fread(here("Data/training_processed.csv"))
+log_cases_task <- generate_task(data, "log_cases")
 
-fold <- task$folds[[1]]
-training(task)$data
+# simple covariate screening
+lrnr_glmnet <- make_learner(Lrnr_glmnet)
+lg_fit <- lrnr_glmnet$train(log_cases_task)
+
 sl <- generate_learners()
 
 
