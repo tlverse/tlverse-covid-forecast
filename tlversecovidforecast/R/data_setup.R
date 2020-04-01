@@ -15,6 +15,7 @@ na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 #' @import tidyverse
 #' @import readr
 #' @import dplyr
+#' @import tidyr
 setup_data <- function(){
   ################################################################################
   # week 2 data
@@ -251,7 +252,7 @@ setup_data <- function(){
                         as.character(dat$country))
   datfinal <- merge(dat, country_codes[,c(1,3)], by = "country", all.x = TRUE)
   sum(is.na(datfinal$country_code))
-  crime <- datfinal
+  processed_covariate_sets$crime <- datfinal
   
   ################## listdata[[5]] = number of hospital beds #####################
   hospital_bed_path <- here(covariate_data_folder,"number_of_beds_data.csv")
@@ -297,7 +298,7 @@ setup_data <- function(){
   
   ######################### listdata[[7]] = pollution ############################
   pollution_path <- here(covariate_data_folder,"pollution_data.csv")
-  dat <- listdata[[7]][,-1]
+  dat <- read.csv(pollution_path)[,-1]
   colnames(dat)[1] <- c("country_code")
   dat <- dat[-which(dat$country_code %in% not_countries$country_code), ]
   colnames(dat)[-1] <- substring(names(dat)[-1], 2) # remove X from e.g. X1970
@@ -326,7 +327,7 @@ setup_data <- function(){
   datfinal <- merge(datfinal, country_codes[,c(1,3)], by = "country_code", 
                     all.x = TRUE)
   sum(is.na(datfinal$country_code))
-  processed_covariate_sets$pop_65 <- datfinal
+  processed_covariate_sets$pop65 <- datfinal
   
   ########## listdata[[9]] = port data (insufficient for global merge) ###########
   
@@ -821,7 +822,34 @@ setup_data <- function(){
                    "schools_localized_date", "school_localized", 
                    "restrictions_date", "testpop")
   main9 <- main9[,-c(which(colnames(main9) %in% cols_remove))]
-  all <- main9[,c(1:8,104,9,27:31,14,32:38,10:13,15:26,39:103)]
+  keep_cols <- c("Date", "Province_State", "Country_Region", "country_code",
+                 "region", "Id", "ConfirmedCases", "Fatalities", "Recoveries",
+                 "ForecastId", "days_quarantine", "quarantine", "days_restrictions",
+                 "restrictions", "days_schools_national", "schools_national",
+                 "days_schools_localized", "schools_localized", "lat", "lon",
+                 "continent", "population", "area", "tests", "density", "median_age",
+                 "urbanpop", "hospital_bed", "smokers", "sex0", "sex14", "sex25",
+                 "sex54", "sex64", "sex65plus", "sex_ratio", "lung_disease", "femalelung",
+                 "malelung", "obese", "male_obese", "fem_obese", "overweight",
+                 "male_overweight", "fem_overweight", "air_year", "air_passengers",
+                 "econ_worldrank", "econ_regionrank", "econ_2019score", "econ_propertyrights",
+                 "econ_judical", "econ_gov_integrity", "econ_taxburden", "econ_govspending",
+                 "econ_fiscalhealth", "econ_businessfreedom", "econ_laborfreedom",
+                 "econ_monetaryfreedom", "econ_tradefreedom", "econ_investmentfreedom",
+                 "econ_financialfreedom", "econ_tariffrate", "econ_incometaxrate",
+                 "econ_corporatetaxrate", "econ_taxburdengdp", "econ_govexpendgdp",
+                 "econ_popmills", "econ_gdpbills", "econ_gdpgrowthrate", "econ_yeargdpgrowthrate",
+                 "econ_gdppercapita", "econ_unemployment", "econ_inflation", "econ_fdiflowmills",
+                 "econ_publicdeptofgdp", "gdp_2018", "crime_index", "population2020",
+                 "smoking2016", "females2018", "hospbeds_year", "hospbeds_per1k",
+                 "docs_year", "docs_per1k", "pollution_2010", "pollution_2011",
+                 "pollution_2012", "pollution_2013", "pollution_2014", "pollution_2015",
+                 "pollution_2016", "pollution_2017", "pop65above_year", "pop65above_percent",
+                 "prisoncount_year", "prison_count", "prisonrate_year", "prison_rate",
+                 "rail_year", "rail_millionpassengerkm", "sars_cases", "sars_deaths",
+                 "sars_recovered")
+  
+  all <- main9[,keep_cols]
   
   ############################# imputation #######################################
   
@@ -861,7 +889,7 @@ setup_data <- function(){
   all2$econ_gdpbills <- as.numeric(gsub(",","", econ_gdpbills))
   
   # change facs to numeric
-  facs <- colnames(all2)[c(48:68,70:71,73:74,76)]
+  facs <- names(all2)[sapply(all2,is.factor)]
   all2[facs] <- sapply(all2[facs], as.character)
   all2[facs] <- sapply(all2[facs], as.numeric)
   
@@ -880,29 +908,96 @@ setup_data <- function(){
                                      "recoveries")
   data <- data.table(final)
   ############################### add in features ################################
+  
+  case_days_or_zero <- function(date, first_date){
+    case_days <- as.numeric(difftime(date, first_date, unit="days"))
+    case_days[which(is.na(case_days)|(case_days<0))] <- 0
+    
+    return(case_days)
+  }
+  
   data[, days:=as.numeric(difftime(date,min(date),unit="days"))]
+  
   data[, first_case_date:=min(date[cases>0], na.rm=TRUE),by=list(region)]
-  data[, case_days:=as.numeric(difftime(date, first_case_date, unit="days"))]
-  data[, log_case_days:=ifelse(case_days>0, log10(case_days), 0)]
   data[, tenth_case_date:=min(date[cases>10], na.rm=TRUE), by=list(region)]
-  data[, case10_days:=as.numeric(difftime(date, tenth_case_date,unit="days")), by=list(region)]
   data[, hundreth_case_date:=min(date[cases>100], na.rm=TRUE), by=list(region)]
+  
+  
+  data[, case_days:=case_days_or_zero(date, first_case_date)]
+  data[, case10_days:=case_days_or_zero(date, tenth_case_date)]
+  data[, case100_days:=case_days_or_zero(date, hundreth_case_date)]
+  data[, case10_days:=as.numeric(difftime(date, tenth_case_date,unit="days")), by=list(region)]
+  
   data[, case100_days:=as.numeric(difftime(date, hundreth_case_date,unit="days")), by=list(region)]
   data[, max_cases:=max(cases, na.rm=TRUE), by=list(region)]
   
+  data[, log_cases:=log(cases+1)]
+  data[, log_fatalities:=log(fatalities+1)]
   ################################################################################
   # final save of all data, training, test
   ################################################################################
+  keep_cols <- c("date", "province_state", "country_region", "region", "id", 
+                 "cases", "fatalities", "log_cases", "log_fatalities", "forecastid", "delta_rail_millionpassengerkm", 
+                 "days", "first_case_date", "case_days", "tenth_case_date", 
+                 "case10_days", "hundreth_case_date", "case100_days", "recoveries", 
+                 "days_quarantine", "quarantine", "days_restrictions", "restrictions", 
+                 "days_schools_national", "schools_national", "days_schools_localized", 
+                 "schools_localized", "lat", "lon", "population", "area", "sars_cases", 
+                 "sars_deaths", "sars_recovered", "delta_recoveries", "continent", 
+                 "tests", "density", "median_age", "urbanpop", "hospital_bed", 
+                 "smokers", "sex0", "sex14", "sex25", "sex54", "sex64", "sex65plus", 
+                 "sex_ratio", "lung_disease", "femalelung", "malelung", "obese", 
+                 "male_obese", "fem_obese", "overweight", "male_overweight", "fem_overweight", 
+                 "air_year", "air_passengers", "econ_worldrank", "econ_regionrank", 
+                 "econ_2019score", "econ_propertyrights", "econ_judical", "econ_gov_integrity", 
+                 "econ_taxburden", "econ_govspending", "econ_fiscalhealth", "econ_businessfreedom", 
+                 "econ_laborfreedom", "econ_monetaryfreedom", "econ_tradefreedom", 
+                 "econ_investmentfreedom", "econ_financialfreedom", "econ_tariffrate", 
+                 "econ_incometaxrate", "econ_corporatetaxrate", "econ_taxburdengdp", 
+                 "econ_govexpendgdp", "econ_popmills", "econ_gdpbills", "econ_gdpgrowthrate", 
+                 "econ_yeargdpgrowthrate", "econ_gdppercapita", "econ_unemployment", 
+                 "econ_inflation", "econ_fdiflowmills", "econ_publicdeptofgdp", 
+                 "gdp_2018", "crime_index", "population2020", "smoking2016", "females2018", 
+                 "hospbeds_year", "hospbeds_per1k", "docs_year", "docs_per1k", 
+                 "pollution_2010", "pollution_2011", "pollution_2012", "pollution_2013", 
+                 "pollution_2014", "pollution_2015", "pollution_2016", "pollution_2017", 
+                 "pop65above_year", "pop65above_percent", "prisoncount_year", 
+                 "prison_count", "prisonrate_year", "prison_rate", "rail_year", 
+                 "rail_millionpassengerkm", "delta_continent", "delta_tests", 
+                 "delta_density", "delta_median_age", "delta_urbanpop", "delta_hospital_bed", 
+                 "delta_smokers", "delta_sex0", "delta_sex14", "delta_sex25", 
+                 "delta_sex54", "delta_sex64", "delta_sex65plus", "delta_sex_ratio", 
+                 "delta_lung_disease", "delta_femalelung", "delta_malelung", "delta_obese", 
+                 "delta_male_obese", "delta_fem_obese", "delta_overweight", "delta_male_overweight", 
+                 "delta_fem_overweight", "delta_air_year", "delta_air_passengers", 
+                 "delta_econ_worldrank", "delta_econ_regionrank", "delta_econ_2019score", 
+                 "delta_econ_propertyrights", "delta_econ_judical", "delta_econ_gov_integrity", 
+                 "delta_econ_taxburden", "delta_econ_govspending", "delta_econ_fiscalhealth", 
+                 "delta_econ_businessfreedom", "delta_econ_laborfreedom", "delta_econ_monetaryfreedom", 
+                 "delta_econ_tradefreedom", "delta_econ_investmentfreedom", "delta_econ_financialfreedom", 
+                 "delta_econ_tariffrate", "delta_econ_incometaxrate", "delta_econ_corporatetaxrate", 
+                 "delta_econ_taxburdengdp", "delta_econ_govexpendgdp", "delta_econ_popmills", 
+                 "delta_econ_gdpbills", "delta_econ_gdpgrowthrate", "delta_econ_yeargdpgrowthrate", 
+                 "delta_econ_gdppercapita", "delta_econ_unemployment", "delta_econ_inflation", 
+                 "delta_econ_fdiflowmills", "delta_econ_publicdeptofgdp", "delta_gdp_2018", 
+                 "delta_crime_index", "delta_population2020", "delta_smoking2016", 
+                 "delta_females2018", "delta_hospbeds_year", "delta_hospbeds_per1k", 
+                 "delta_docs_year", "delta_docs_per1k", "delta_pollution_2010", 
+                 "delta_pollution_2011", "delta_pollution_2012", "delta_pollution_2013", 
+                 "delta_pollution_2014", "delta_pollution_2015", "delta_pollution_2016", 
+                 "delta_pollution_2017", "delta_pop65above_year", "delta_pop65above_percent", 
+                 "delta_prisoncount_year", "delta_prison_count", "delta_prisonrate_year", 
+                 "delta_prison_rate", "delta_rail_year")
   
-  all <- data[,c(1:3,5:9,185:193,10:184)]
+  all <- data[,keep_cols, with = FALSE]
   all <- all[order(all$country_region, all$region, all$date),]
   write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
   
   training <- all[is.na(all$forecastid),]
-  training <- training[order(training$id),-c(2:3,8)]
+  # training <- training[order(training$id),-c(2:3,8)]
   write.csv(training, file = here("Data", "training_processed.csv"), row.names = FALSE)
   
   test <- all[is.na(all$id),]
-  test <- test[order(test$forecastid),-c(2:3,5:7)]
+  # test <- test[order(test$forecastid),-c(2:3,5:7)]
   write.csv(test, file = here("Data", "test_processed.csv"), row.names = FALSE)
 }
