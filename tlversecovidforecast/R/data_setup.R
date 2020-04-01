@@ -14,6 +14,7 @@ na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 #' @import reshape2
 #' @import tidyverse
 #' @import readr
+#' @import dplyr
 setup_data <- function(){
   ################################################################################
   # week 2 data
