@@ -17,9 +17,9 @@ na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 #' @import dplyr
 #' @import tidyr
 setup_data <- function(){
-  ################################################################################
+  ##############################################################################
   # week 2 data
-  ################################################################################
+  ##############################################################################
   test_data <- read.csv(here("Data/week2","test.csv"))
   train_data <- read.csv(here("Data/week2","train.csv"))
   
@@ -81,9 +81,9 @@ setup_data <- function(){
   
   train_regions <- train_data$region
   
-  ################################################################################
+  ##############################################################################
   # country codes
-  ################################################################################
+  ##############################################################################
   urlfile <- "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv"
   country_codes <-read_csv(url(urlfile))
   
@@ -151,14 +151,14 @@ setup_data <- function(){
   # prep country_codes for merge with covariates
   colnames(country_codes)[c(1,3)] <- c("country", "country_code")
   
-  ################################################################################
+  ##############################################################################
   # baseline covariate data
-  ################################################################################
+  ##############################################################################
   covariate_data_folder <- "Data/covid19-global-forecasting-week-1/"
   #path <- paste0("~/tlverse-covid-forecast/Data/covid19-global-forecasting-week-1/",files)
   processed_covariate_sets <- list()
   
-  ################### identify rows which are not countries ######################
+  ################### identify rows which are not countries ####################
   air_transport_path <- here(covariate_data_folder,"air_transport_data.csv")
   countries <- read.csv(air_transport_path)[,c(1:2)]
   colnames(countries) <- c("country", "country_code")
@@ -166,7 +166,7 @@ setup_data <- function(){
   not_countries <- countries[c(which(is.na(countries$country.y))),c(1:2)]
   not_countries <- droplevels(not_countries)
   
-  ######################## listdata[[1]] = air passengers ########################
+  ############################### air passengers ###############################
   air_transport_path <- here(covariate_data_folder,"air_transport_data.csv")
   dat <- read.csv(air_transport_path)[,-c(1, 3:14)]
   colnames(dat)[1] <- c("country_code")
@@ -187,7 +187,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$air_transport <- datfinal
   
-  ########################### listdata[[3]] = economy ############################
+  ################################### economy ##################################
   economy_path <- here(covariate_data_folder,"economic_freedom_index_data.csv")
   dat <- read.csv(economy_path)[,-c(1, 3:4, 25)]
   colnames(dat)[1] <- "country"
@@ -239,7 +239,7 @@ setup_data <- function(){
   datfinal <- datfinal[-which(is.na(datfinal$country_code)),]
   processed_covariate_sets$economy <- datfinal
   
-  ##### listdata[[4]] = gdp_crime_data (already in Data/covid_countryinfo.csv) ###
+  ############################# gdp_crime_data #################################
   crime_path <- here(covariate_data_folder,"gdp_crime_data.csv")
   dat <- read.csv(crime_path)
   colnames(dat) <- c("country", "gdp_2018", "crime_index", "population2020", 
@@ -254,7 +254,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$crime <- datfinal
   
-  ################## listdata[[5]] = number of hospital beds #####################
+  ######################### number of hospital beds ############################
   hospital_bed_path <- here(covariate_data_folder,"number_of_beds_data.csv")
   dat <- read.csv(hospital_bed_path)[,-c(1, 3:4)]
   colnames(dat)[1] <- c("country_code")
@@ -275,7 +275,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$hospital_beds <- datfinal
   
-  ######################## listdata[[6]] = number of doctors #####################
+  ########################### number of doctors ################################
   num_doctors_path <- here(covariate_data_folder,"number_of_beds_data.csv")
   dat <- read.csv(num_doctors_path)[,-c(1, 3:4)]
   colnames(dat)[1] <- c("country_code")
@@ -296,7 +296,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$num_doctors <- datfinal
   
-  ######################### listdata[[7]] = pollution ############################
+  ################################ pollution ###################################
   pollution_path <- here(covariate_data_folder,"pollution_data.csv")
   dat <- read.csv(pollution_path)[,-1]
   colnames(dat)[1] <- c("country_code")
@@ -308,7 +308,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$pollution <- datfinal
   
-  ######################## listdata[[8]] = population +65 ########################
+  ############################# population +65 #################################
   pop65_path <- here(covariate_data_folder,"population_plus65_data.csv")
   dat <- read.csv(pop65_path)[,-c(1, 3:4)]
   colnames(dat)[1] <- c("country_code")
@@ -329,9 +329,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$pop65 <- datfinal
   
-  ########## listdata[[9]] = port data (insufficient for global merge) ###########
-  
-  ###################### listdata[[10]] = prison data ############################
+  ################################ prison data #################################
   prison_path <- here(covariate_data_folder,"prison_data.csv")
   dat <- read.csv(prison_path)[,-c(1:2, 7)]
   colnames(dat)[1] <- c("country")
@@ -440,7 +438,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$prison <- datfinal
   
-  ########################## listdata[[11]] = railways data ######################
+  ################################## railways data #############################
   railways_path <- here(covariate_data_folder,"railways_data.csv")
   dat <- read.csv(railways_path)[,-c(1, 3:4)]
   colnames(dat)[1] <- c("country_code")
@@ -461,9 +459,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$railways <- datfinal
   
-  ####### listdata[[12]] = restaurant data (insufficient for global merge) #######
-  
-  ############################# listdata[[14]] = SARS data #######################
+  ############################### SARS data ####################################
   sars_path <- here(covariate_data_folder,"sars_data.csv")
   dat <- read.csv(sars_path, na.strings = " -   ")
   colnames(dat)[2] <- c("country")
@@ -492,7 +488,7 @@ setup_data <- function(){
   sum(is.na(datfinal$country_code))
   processed_covariate_sets$sars <- datfinal
   
-  ############################## put it all together #############################
+  ############################## put it all together ###########################
 
   baseline_data <- Reduce(function(...) merge(..., by = c("country_code","country"), all = TRUE), 
                           processed_covariate_sets)
@@ -505,12 +501,12 @@ setup_data <- function(){
   write.csv(baseline_data, file = here("Data", "baselinecovs.csv"), row.names = F)
   
   
-  ################################################################################
+  ##############################################################################
   # time-varying covariate data 
-  ################################################################################
+  ##############################################################################
   
   processed_tv_covariates <- list()
-  ################# listdata[[2]] = covid_impact_education #######################
+  ######################### covid_impact_education #############################
   covid_impact_path <- here(covariate_data_folder,"covid_impact_education.csv")
   dat <- read.csv(covid_impact_path)
   all.equal(dat$Date, dat$Date.1) # TRUE
@@ -539,7 +535,7 @@ setup_data <- function(){
   datfinal2 <- rbind(datfinal_national, datfinal_localized)
   processed_tv_covariates$covid_impact <- datfinal2[,-2]
   
-  #################### listdata[[13]] = restrictions_info_data ###################
+  ####################### restrictions_info_data ###############################
   restrictions_path <- here(covariate_data_folder,"restrictions_info_data.csv")
   dat <- read.csv(restrictions_path)
   dat <- dat[,colSums(is.na(dat))<nrow(dat)]
@@ -589,9 +585,9 @@ setup_data <- function(){
   nodups <- dups[c(2:3),]
   notus_res <- rbind(notus_res2, nodups)
   
-  ################################################################################
+  ##############################################################################
   # put it all together
-  ################################################################################
+  ##############################################################################
   
   # combine test and train for now to avoid seperate merging of covariates
   train_data$Date <- as.Date(train_data$Date)
@@ -607,7 +603,7 @@ setup_data <- function(){
   nrow(test_data) #12642
   nrow(train_data) #19404
   
-  ######################## merge time-varying covariates #########################
+  ######################## merge time-varying covariates #######################
   main_us <- filter(main, region == "US") 
   main_us <- merge(main_us, us_res, by = c("Province_State", "Country_Region", 
                                            "region", "country_code"), all.x = TRUE)
@@ -702,7 +698,7 @@ setup_data <- function(){
   main4$restrictions <- ifelse(
     (main4$restrictions == 0 & main4$quarantine == 1), 
     main4$quarantine, main4$restrictions)
-  ########################## merge baseline data #################################
+  ########################## merge baseline data ###############################
   geo <- read.csv(file = here("Data", "region_metadata.csv"))
   main5 <- merge(main4[,-10], geo, by = c("Country_Region", "Province_State"), 
                  all.x = TRUE)
@@ -851,7 +847,7 @@ setup_data <- function(){
   
   all <- main9[,keep_cols]
   
-  ############################# imputation #######################################
+  ############################# imputation #####################################
   
   # set missing SARS to 0 
   all$sars_cases <- ifelse(is.na(all$sars_cases), 0, all$sars_cases)
@@ -907,6 +903,7 @@ setup_data <- function(){
                                      "id", "cases", "fatalities", "forecastid", 
                                      "recoveries")
   data <- data.table(final)
+<<<<<<< HEAD
   ############################### add in features ################################
   
   case_days_or_zero <- function(date, first_date){
@@ -916,6 +913,10 @@ setup_data <- function(){
     return(case_days)
   }
   
+=======
+  
+  ############################### add in features ##############################
+>>>>>>> dca6ead5315c21edf69203dd6a35b9349b7c5614
   data[, days:=as.numeric(difftime(date,min(date),unit="days"))]
   
   data[, first_case_date:=min(date[cases>0], na.rm=TRUE),by=list(region)]
@@ -931,6 +932,7 @@ setup_data <- function(){
   data[, case100_days:=as.numeric(difftime(date, hundreth_case_date,unit="days")), by=list(region)]
   data[, max_cases:=max(cases, na.rm=TRUE), by=list(region)]
   
+<<<<<<< HEAD
   data[, log_cases:=log(cases+1)]
   data[, log_fatalities:=log(fatalities+1)]
   ################################################################################
@@ -990,6 +992,7 @@ setup_data <- function(){
                  "delta_prison_rate", "delta_rail_year")
   
   all <- data[,keep_cols, with = FALSE]
+
   all <- all[order(all$country_region, all$region, all$date),]
   write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
   
