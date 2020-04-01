@@ -42,4 +42,4 @@ submission <- data.table(ForecastId=test_data$forecastid,
                          Fatalities=test_fatalities_preds)
 
 submission <- submission[order(ForecastId)]
-write.csv(submission, here("Data/our_submission.csv",row.names=FALSE))
+write.csv(submission, here("Data/our_submission.csv"),row.names=FALSE)
