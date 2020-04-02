@@ -3,6 +3,9 @@
 # library(here)
 # library(reshape2)
 # library(tidyverse)
+# library(readr)
+# library(dplyr)
+# library(tidyr)
 
 #' @import zoo
 na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
@@ -900,6 +903,8 @@ setup_data <- function(){
   final$region <- ifelse(!(is.na(final$Province_State)), 
                          as.character(final$Province_State), 
                          as.character(final$region))
+  final$region <- ifelse((final$region == "Georgia" & final$Country_Region == "US"), 
+                         "GeorgiaUS", as.character(final$region))
   final$region <- as.factor(final$region)
   colnames(final)[c(1:3, 6:10)] <- c("date", "province_state", "country_region", 
                                      "id", "cases", "fatalities", "forecastid", 
@@ -983,6 +988,7 @@ setup_data <- function(){
                  "delta_prison_rate", "delta_rail_year")
   
   all <- data[,keep_cols, with = FALSE]
+  all$weekday <- as.factor(weekdays(all$date))
 
   all <- all[order(all$country_region, all$region, all$date),]
   write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
