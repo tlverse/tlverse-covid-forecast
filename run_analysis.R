@@ -30,7 +30,7 @@ log_fatalities_task <- generate_task(data, "log_fatalities")
 test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
 
 fatalities_fit <- sl$train(log_fatalities_task)
-test_preds <- fit$predict(test_log_fatalities_task)
+test_preds <- fatalities_fit$predict(test_log_fatalities_task)
 test_fatalities_preds <- exp(test_preds) - 1
 
 # generate submission
