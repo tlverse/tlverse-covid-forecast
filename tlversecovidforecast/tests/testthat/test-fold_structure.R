@@ -7,7 +7,7 @@ task <- generate_task(data)
 
 
 # double_check fold structure
-test_times <- function(fold, task){
+test_times <- function(fold, task) {
   last_train_time <- max(training(task)$get_node("time"))
   first_val_time <- min(validation(task)$get_node("time"))
   expect_lt(last_train_time, first_val_time)
