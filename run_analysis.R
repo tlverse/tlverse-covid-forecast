@@ -1,18 +1,15 @@
-library(devtools)
 library(here)
-document("tlversecovidforecast")
-load_all("tlversecovidforecast")
+library(data.table)
+devtools::document("tlversecovidforecast")
+devtools::load_all("tlversecovidforecast")
 # run this to regenerate processed data
 # setup_data()
 
-
 # simple covariate screening
-sl <- generate_learners()
 sl3_debug_mode()
-
-
-data <- fread(here("Data/training_processed.csv"))
-test_data <- fread(here("Data/test_processed.csv"))
+sl <- generate_learners()
+data <- fread(here("Data", "training_processed.csv"))
+test_data <- fread(here("Data", "test_processed.csv"))
 
 # generate case preds
 log_cases_task <- generate_task(data, "log_cases")
