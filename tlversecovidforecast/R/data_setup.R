@@ -1,12 +1,3 @@
-# library(data.table)
-# library(zoo)
-# library(here)
-# library(reshape2)
-# library(tidyverse)
-# library(readr)
-# library(dplyr)
-# library(tidyr)
-
 #' @import zoo
 na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 "%nin%" <- Negate("%in%")
@@ -123,28 +114,35 @@ setup_data <- function() {
 
   # match country names of the codes to country names in training/test data
   missing <- train_regions[which(train_regions %nin% countrycodes$name)]
-  countrycodes$name <- ifelse(countrycodes$name == "Bolivia (Plurinational State of)",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Bolivia (Plurinational State of)",
     "Bolivia", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Brunei Darussalam", "Brunei",
+  countrycodes$name <- ifelse(countrycodes$name == "Brunei Darussalam",
+                              "Brunei",
     as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Congo", "Congo (Brazzaville)",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Congo", "Congo (Brazzaville)",
     as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Congo, Democratic Republic of the",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Congo, Democratic Republic of the",
     "Congo (Kinshasa)", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Côte d'Ivoire", "Cote d'Ivoire",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Côte d'Ivoire", "Cote d'Ivoire",
     as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Iran (Islamic Republic of)",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Iran (Islamic Republic of)",
     "Iran", as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "Korea, Republic of",
     "Korea, South", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Lao People's Democratic Republic",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Lao People's Democratic Republic",
     "Laos", as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "Moldova, Republic of",
@@ -159,16 +157,20 @@ setup_data <- function() {
   countrycodes$name <- ifelse(countrycodes$name == "Taiwan, Province of China",
     "Taiwan*", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Tanzania, United Republic of",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Tanzania, United Republic of",
     "Tanzania", as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "United States of America",
     "US", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "United Kingdom of Great Britain and Northern Ireland",
+  countrycodes$name <-
+    ifelse(countrycodes$name ==
+           "United Kingdom of Great Britain and Northern Ireland",
     "United Kingdom", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Venezuela (Bolivarian Republic of)",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Venezuela (Bolivarian Republic of)",
     "Venezuela", as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "Viet Nam", "Vietnam",
@@ -183,20 +185,25 @@ setup_data <- function() {
   countrycodes$name <- ifelse(countrycodes$name == "Saint Barthélemy",
     "Saint Barthelemy", as.character(countrycodes$name)
   )
-  countrycodes$name <- ifelse(countrycodes$name == "Saint Martin (French part)",
+  countrycodes$name <- ifelse(countrycodes$name ==
+                              "Saint Martin (French part)",
     "Sint Maarten", as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "Sint Maarten (Dutch part)",
     "St Martin", as.character(countrycodes$name)
   )
-  unique(train_regions[which(train_regions %nin% countrycodes$name)]) # Diamond Princess
-  write.csv(countrycodes, file = here("Data", "countrycodes.csv"), row.names = FALSE)
+  # Diamond Princess
+  unique(train_regions[which(train_regions %nin% countrycodes$name)])
+  write.csv(countrycodes, file = here("Data", "countrycodes.csv"),
+            row.names = FALSE)
 
   # add country_code to test and train data
   country_codes <- read.csv(file = here("Data", "countrycodes.csv"))
   colnames(country_codes)[c(1, 3)] <- c("region", "country_code")
-  test_data <- merge(test_data, country_codes[, c(1, 3)], by = "region", all.x = TRUE)
-  train_data <- merge(train_data, country_codes[, c(1, 3)], by = "region", all.x = TRUE)
+  test_data <- merge(test_data, country_codes[, c(1, 3)], by = "region",
+                     all.x = TRUE)
+  train_data <- merge(train_data, country_codes[, c(1, 3)], by = "region",
+                      all.x = TRUE)
   train_data <- unique(train_data)
   # prep country_codes for merge with covariates
   colnames(country_codes)[c(1, 3)] <- c("country", "country_code")
@@ -241,21 +248,25 @@ setup_data <- function() {
   processed_covariate_sets$air_transport <- datfinal
 
   ################################### economy ##################################
-  economy_path <- here(covariate_data_folder, "economic_freedom_index_data.csv")
+  economy_path <- here(covariate_data_folder,
+                       "economic_freedom_index_data.csv")
   dat <- read.csv(economy_path)[, -c(1, 3:4, 25)]
   colnames(dat)[1] <- "country"
 
   dat$country <- ifelse(dat$country == "Brunei Darussalam", "Brunei",
     as.character(dat$country)
   )
-  dat$country <- ifelse(dat$country == "Burma", "Myanmar", as.character(dat$country))
+  dat$country <- ifelse(dat$country == "Burma", "Myanmar",
+                        as.character(dat$country))
   dat$country <- ifelse(dat$country == "C\xf4te d'Ivoire", "Cote d'Ivoire",
     as.character(dat$country)
   )
-  dat$country <- ifelse(dat$country == "Congo, Democratic Republic of the Congo",
+  dat$country <- ifelse(dat$country ==
+                        "Congo, Democratic Republic of the Congo",
     "Congo (Kinshasa)", as.character(dat$country)
   )
-  dat$country <- ifelse(dat$country == "Congo, Republic of", "Congo (Brazzaville)",
+  dat$country <- ifelse(dat$country == "Congo, Republic of",
+                        "Congo (Brazzaville)",
     as.character(dat$country)
   )
   dat$country <- ifelse(dat$country == "Kyrgyz Republic", "Kyrgyzstan",
@@ -280,7 +291,8 @@ setup_data <- function() {
   dat$country <- ifelse(dat$country == "Taiwan ", "Taiwan*",
     as.character(dat$country)
   )
-  dat$country <- ifelse(dat$country == "Tanzania, United Republic of", "Tanzania",
+  dat$country <- ifelse(dat$country == "Tanzania, United Republic of",
+                        "Tanzania",
     as.character(dat$country)
   )
   dat$country <- ifelse(dat$country == "United States", "US",

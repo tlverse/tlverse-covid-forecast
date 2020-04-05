@@ -1,9 +1,12 @@
 library(here)
+library(tidyverse)
 library(data.table)
+devtools::install_github("tlverse/sl3@timeseries-overhaul")
+library(sl3)
+
+# load helper package
 devtools::document("tlversecovidforecast")
 devtools::load_all("tlversecovidforecast")
-# run this to regenerate processed data
-# setup_data()
 
 # simple covariate screening
 sl3_debug_mode()
@@ -31,12 +34,12 @@ test_preds <- fatalities_fit$predict(test_log_fatalities_task)
 test_fatalities_preds <- exp(test_preds) - 1
 
 # generate submission
-ex_submission <- fread(here("Data/week2/submission.csv"))
+ex_submission <- fread(here("Data", "week2", "submission.csv"))
 names(ex_submission)
 
-submission <- data.table(ForecastId=test_data$forecastid,
-                         ConfirmedCases=test_cases_preds,
-                         Fatalities=test_fatalities_preds)
+submission <- data.table(ForecastId = test_data$forecastid,
+                         ConfirmedCases = test_cases_preds,
+                         Fatalities = test_fatalities_preds)
 
 submission <- submission[order(ForecastId)]
-write.csv(submission, here("Data/our_submission.csv"),row.names=FALSE)
+write.csv(submission, here("Data", "our_submission.csv"), row.names = FALSE)
