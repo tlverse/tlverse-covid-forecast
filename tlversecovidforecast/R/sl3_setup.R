@@ -85,10 +85,8 @@ generate_task <- function(data, outcome) {
   return(task)
 }
 
-
 loss_competition <- function(pred, observed) {
   loss <- (log(pred + 1) - log(observed + 1))^2
-
   return(loss)
 }
 
@@ -112,14 +110,15 @@ generate_learners <- function() {
   lrnr_glm <- make_learner(Lrnr_glm)
   lrnr_ranger <- make_learner(Lrnr_ranger)
   lrnr_earth <- make_learner(Lrnr_earth)
+  lrnr_gts <- make_learner(Lrnr_gts)
   stack <- make_learner(Stack, unlist(list(
     xgb_learners, lrnr_glm, lrnr_lasso,
-    lrnr_ranger, lrnr_earth
+    lrnr_ranger, lrnr_earth, lrnr_gts
   ),
   recursive = TRUE
   ))
   lrnr_glmnet <- make_learner(Lrnr_glmnet)
-  screener <- make_learner(sl3:::Lrnr_screener_coefs, lrnr_glmnet, 1e-2)
+  screener <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, 1e-2)
   pipe <- make_learner(Pipeline, screener, stack)
   metalearner_competition <- make_learner(
     Lrnr_solnp, metalearner_linear_bound,
