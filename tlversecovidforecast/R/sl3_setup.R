@@ -95,11 +95,11 @@ metalearner_linear_bound <- function(alpha, X) {
 }
 
 #' @import sl3
-generate_learners <- function() {
+generate_learners <- function(variable_stratify = "continent") {
   # TODO integrate timeseries learners + mechanistic models
   grid_params <- list(
-    max_depth = c(2, 5, 8),
-    eta = c(0.005, 0.1, 0.25)
+    max_depth = c(2, 4, 6, 8),
+    eta = c(0.001, 0.01, 0.1, 0.2, 0.3)
   )
   grid <- expand.grid(grid_params, KEEP.OUT.ATTRS = FALSE)
   params_default <- list(nthread = getOption("sl.cores.learners", 1))
@@ -118,12 +118,17 @@ generate_learners <- function() {
   recursive = TRUE
   ))
   lrnr_glmnet <- make_learner(Lrnr_glmnet)
-  screener <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, 1e-2)
+  screener <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, threshold = 1e-2)
+  screener_flex <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, threshold = 1e-3)
   pipe <- make_learner(Pipeline, screener, stack)
+  pipe_flex <- make_learner(Pipeline, screener_flex, stack)
+  multiscreen_stack <- make_learner(Stack, pipe, pipe_flex)
   metalearner_competition <- make_learner(
     Lrnr_solnp, metalearner_linear_bound,
     loss_squared_error
   )
-  sl <- make_learner(Lrnr_sl, pipe, metalearner_competition)
+  stratified_metalearner <- Lrnr_stratified$new(learner = metalearner_competition,
+                                                variable_stratify = variable_stratify)
+  sl <- make_learner(Lrnr_sl, multiscreen_stack, stratified_metalearner)
   return(sl)
 }
