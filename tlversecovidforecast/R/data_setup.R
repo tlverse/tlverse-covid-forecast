@@ -1,3 +1,12 @@
+library(data.table)
+library(zoo)
+library(here)
+library(reshape2)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(tidyr)
+
 #' @import zoo
 na.locf2 <- function(x) na.locf(x, na.rm = FALSE)
 "%nin%" <- Negate("%in%")
@@ -14,11 +23,11 @@ setup_data <- function() {
   ##############################################################################
   # week 2 data
   ##############################################################################
-  test_data <- read.csv(here("Data/week2", "test.csv"))
-  train_data <- read.csv(here("Data/week2", "train.csv"))
+  test_data <- read.csv(here("Data/week3", "test.csv"))
+  train_data <- read.csv(here("Data/week3", "train.csv"))
 
-  nrow(test_data) # 12642 rows in test
-  nrow(train_data) # 19404 rows in training
+  nrow_test_data <- nrow(test_data) # 13158 rows in test
+  nrow_train_data <- nrow(train_data) # 22950 rows in training
 
   # make some of the Province_State seperate regions
   test_data$region <- test_data$Country_Region
@@ -94,11 +103,21 @@ setup_data <- function() {
   test_data$region <- ifelse(test_data$Province_State == "Montserrat",
     "Montserrat", as.character(test_data$region)
   )
-  train_data <- merge(train_data, test_data[, c(2:3, 5)],
-    by = c("Province_State", "Country_Region"), all.x = TRUE
+  test_data$region <- ifelse(test_data$Province_State == "Anguilla",
+                             "Anguilla", as.character(test_data$region)
   )
-
-  train_regions <- train_data$region
+  test_data$region <- ifelse(test_data$Province_State == "British Virgin Islands",
+                             "British Virgin Islands", as.character(test_data$region)
+  )
+  test_data$region <- ifelse(test_data$Province_State == "Turks and Caicos Islands",
+                             "Turks and Caicos Islands", as.character(test_data$region)
+  )
+  train_data <- merge(train_data, 
+                      test_data[, colnames(test_data) %in% c("Province_State","Country_Region","region")],
+                      by = c("Province_State", "Country_Region"), all.x = TRUE
+  )
+  train_data <- unique(train_data)
+  train_regions <- unique(train_data$region)
 
   ##############################################################################
   # country codes
@@ -114,9 +133,20 @@ setup_data <- function() {
 
   # match country names of the codes to country names in training/test data
   missing <- train_regions[which(train_regions %nin% countrycodes$name)]
-  countrycodes$name <- ifelse(countrycodes$name ==
-                              "Bolivia (Plurinational State of)",
+  countrycodes$name <- ifelse(countrycodes$name == 
+                                "Bolivia (Plurinational State of)",
     "Bolivia", as.character(countrycodes$name)
+  )
+  countrycodes$name <- ifelse(countrycodes$name == "Virgin Islands (British)",
+                              "British Virgin Islands", 
+                              as.character(countrycodes$name)
+  )
+  countrycodes$name <- ifelse(countrycodes$name == "Myanmar", "Burma",
+                              as.character(countrycodes$name)
+  )
+  countrycodes$name <- ifelse(countrycodes$name == "Palestine, State of", 
+                              "West Bank and Gaza",
+                              as.character(countrycodes$name)
   )
   countrycodes$name <- ifelse(countrycodes$name == "Brunei Darussalam",
                               "Brunei",
@@ -192,7 +222,6 @@ setup_data <- function() {
   countrycodes$name <- ifelse(countrycodes$name == "Sint Maarten (Dutch part)",
     "St Martin", as.character(countrycodes$name)
   )
-  # Diamond Princess
   unique(train_regions[which(train_regions %nin% countrycodes$name)])
   write.csv(countrycodes, file = here("Data", "countrycodes.csv"),
             row.names = FALSE)
@@ -204,7 +233,6 @@ setup_data <- function() {
                      all.x = TRUE)
   train_data <- merge(train_data, country_codes[, c(1, 3)], by = "region",
                       all.x = TRUE)
-  train_data <- unique(train_data)
   # prep country_codes for merge with covariates
   colnames(country_codes)[c(1, 3)] <- c("country", "country_code")
 
@@ -256,8 +284,6 @@ setup_data <- function() {
   dat$country <- ifelse(dat$country == "Brunei Darussalam", "Brunei",
     as.character(dat$country)
   )
-  dat$country <- ifelse(dat$country == "Burma", "Myanmar",
-                        as.character(dat$country))
   dat$country <- ifelse(dat$country == "C\xf4te d'Ivoire", "Cote d'Ivoire",
     as.character(dat$country)
   )
@@ -465,9 +491,6 @@ setup_data <- function() {
   datfinal$country <- ifelse(datfinal$country == "Brunei Darussalam", "Brunei",
     as.character(datfinal$country)
   )
-  datfinal$country <- ifelse(datfinal$country == "British Virgin Islands",
-    "Virgin Islands (British)", as.character(datfinal$country)
-  )
   datfinal$country <- ifelse(datfinal$country == "Congo", "Congo (Brazzaville)",
     as.character(datfinal$country)
   )
@@ -541,7 +564,7 @@ setup_data <- function() {
     "Virgin Islands (U.S.)", as.character(datfinal$country)
   )
   datfinal$country <- ifelse(datfinal$country == "State of Palestine",
-    "Palestine, State of", as.character(datfinal$country)
+    "West Bank and Gaza", as.character(datfinal$country)
   )
   datfinal$country <- ifelse(datfinal$country == "Czech republic",
     "Czechia", as.character(datfinal$country)
@@ -549,11 +572,14 @@ setup_data <- function() {
   datfinal$country <- ifelse(datfinal$country == "Cura\x8dao",
     "Curacao", as.character(datfinal$country)
   )
+  datfinal$country <- ifelse(datfinal$country == "Myanmar",
+                             "Burma", as.character(datfinal$country)
+  )
   datfinal <- merge(datfinal, country_codes[, c(1, 3)], by = "country", all.x = TRUE)
   datfinal$prison_count <- as.numeric(gsub(",", "", datfinal$prison_count))
   datfinal$prison_rate <- as.numeric(datfinal$prison_rate)
   datfinal_fix <- datfinal[which(is.na(datfinal$country_code)), ]
-  datfinal_fix_britain <- datfinal_fix[6:8, ]
+  datfinal_fix_britain <- datfinal_fix[4:6, ]
   datfinal_fix_brit <- c(
     country = "United Kingdom", prisoncount_year = 2017,
     prison_count = sum(datfinal_fix_britain$prison_count),
@@ -562,7 +588,7 @@ setup_data <- function() {
     country_code = "GBR"
   )
   datfinal_fix <- rbind(datfinal_fix[-c(4:8), ], datfinal_fix_brit)
-  datfinal_fix$country_code <- c("CIV", "FSM", NA, "GBR")
+  datfinal_fix$country_code <- c("CIV", "FSM", "REU", "GBR")
   dfinal <- rbind(datfinal_fix, datfinal[-which(is.na(datfinal$country_code)), ])[, -1]
   datfinal <- merge(dfinal, country_codes[, c(1, 3)], by = "country_code", all.x = TRUE)
   sum(is.na(datfinal$country_code))
@@ -755,9 +781,9 @@ setup_data <- function() {
   main <- rbind(train_data, test_data)
 
   # make sure we have same test and train data at end
-  nrow(main) # 32928
-  nrow(test_data) # 12642
-  nrow(train_data) # 20286
+  nrow(main) # 36108
+  nrow(test_data) # 13158
+  nrow(train_data) # 22950
 
   ######################## merge time-varying covariates #######################
   main_us <- filter(main, region == "US")
@@ -865,7 +891,6 @@ setup_data <- function() {
     ))
   main3_noedu_merged <- main3_noedu_merged[, -c(41:42)]
 
-  # TODO: double check with rachael on this line
   main3_edu <- filter(main2, !(is.na(schools_national_date) & is.na(schools_localized_date)))
   main4 <- rbind(main3_edu, main3_noedu_merged)
   main4$days_schools_localized <- ifelse(
@@ -886,6 +911,7 @@ setup_data <- function() {
   )
   ########################## merge baseline data ###############################
   geo <- read.csv(file = here("Data", "region_metadata.csv"))
+  
   main5 <- merge(main4[, -10], geo,
     by = c("Country_Region", "Province_State"),
     all.x = TRUE
@@ -972,6 +998,9 @@ setup_data <- function() {
   fatdat$country <- ifelse(fatdat$country == "Democratic People's Republic of Korea",
     "Korea (Democratic People's Republic of)", as.character(fatdat$country)
   )
+  fatdat$country <- ifelse(fatdat$country == "Myanmar", "Burma", 
+                           as.character(fatdat$country)
+  )
   fatdatfinal <- merge(fatdat, country_codes[, c(1, 3)], by = "country", all.x = TRUE)[-166, -1]
   sum(is.na(fatdatfinal$country_code))
   main6 <- merge(main5, fatdatfinal, by = c("country_code"), all.x = TRUE)
@@ -986,46 +1015,6 @@ setup_data <- function() {
   main8 <- merge(main7, recoveries,
     by = c("Date", "Province_State", "Country_Region"), all.x = TRUE
   )
-
-  # add more cases/fatalities data
-  # updates <- read.csv(file = here("Data", "updated_data.csv"))
-  # colnames(updates)[1:2] <- c("Date", "country")
-  # updates$country <- ifelse(updates$country == "British Virgin Islands",
-  #                          "Virgin Islands (British)", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Cape Verde", "Cabo Verde",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Congo", "Congo (Brazzaville)",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Democratic Republic of Congo",
-  #                           "Congo (Kinshasa)", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Czech Republic",
-  #                           "Czechia", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Faeroe Islands",
-  #                           "Faroe Islands", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Macedonia",
-  #                           "North Macedonia", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Palestine",
-  #                           "Palestine, State of", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Sint Maarten (Dutch part)",
-  #                           "Sint Maarten", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "South Korea", "Korea, South",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Swaziland", "Eswatini",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Taiwan", "Taiwan*",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Timor", "Timor-Leste",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "United States", "US",
-  #                           as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "United States Virgin Islands",
-  #                           "Virgin Islands (U.S.)", as.character(updates$country))
-  # updates$country <- ifelse(updates$country == "Vatican", "Holy See",
-  #                           as.character(updates$country))
-  # updates <- merge(updates, country_codes[,c(1,3)], by = "country", all.x = TRUE)
-  # updates <- updates[-which(is.na(updates$country_code)),]
-  # updates$Date <- as.Date(updates$Date, "%m/%d/%y")
-  # main9 <- merge(main8, updates[,-1], by = c("Date", "country_code"), all.x = TRUE)
 
   main9 <- main8[order(main8$Country_Region, main8$region, main8$Date), ]
   cols_remove <- c(
@@ -1064,7 +1053,7 @@ setup_data <- function() {
   )
 
   all <- main9[, keep_cols]
-
+  
   ############################# imputation #####################################
 
   # set missing SARS to 0
@@ -1088,7 +1077,7 @@ setup_data <- function() {
   dat_nostate2 <- dat_nostate %>%
     group_by(region) %>%
     fill(Recoveries)
-  all2 <- rbind(dat_nostate2, dat_state2)
+  all2 <- data.frame(rbind(dat_nostate2, dat_state2))
   all2 <- all2[order(all2$Country_Region, all2$region, all2$Province_State, all2$Date), ]
 
   # fix formatting of some of the economic data
@@ -1108,7 +1097,7 @@ setup_data <- function() {
   facs <- facs[-which(facs %in% c("Country_Region", "country_code", "continent"))]
   all2[facs] <- sapply(all2[facs], as.character)
   all2[facs] <- sapply(all2[facs], as.numeric)
-
+  
   # sl3-style imputation by continent
   X <- data.table(all2[, c(9, 11:105)])
   processedX <- process_data(X, strata = "continent")
@@ -1205,20 +1194,21 @@ setup_data <- function() {
     "delta_pollution_2014", "delta_pollution_2015", "delta_pollution_2016",
     "delta_pollution_2017", "delta_pop65above_year", "delta_pop65above_percent",
     "delta_prisoncount_year", "delta_prison_count", "delta_prisonrate_year",
-    "delta_prison_rate", "delta_rail_year"
+    "delta_prison_rate", "delta_rail_year", "max_cases"
   )
 
   all <- data[, keep_cols, with = FALSE]
   all$weekday <- as.factor(weekdays(all$date))
 
   all <- all[order(all$country_region, all$region, all$date), ]
-  write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
-
   training <- all[is.na(all$forecastid), ]
-  # training <- training[order(training$id),-c(2:3,8)]
-  write.csv(training, file = here("Data", "training_processed.csv"), row.names = FALSE)
-
   test <- all[is.na(all$id), ]
-  # test <- test[order(test$forecastid),-c(2:3,5:7)]
+  
+  if((nrow_training_data != nrow(training)) | (nrow_test_data != nrow(test)){
+    stop("Error: Final training/test nrows != original training/test nrows")
+  }
+  
+  write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
+  write.csv(training, file = here("Data", "training_processed.csv"), row.names = FALSE)
   write.csv(test, file = here("Data", "test_processed.csv"), row.names = FALSE)
 }
