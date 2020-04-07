@@ -78,9 +78,9 @@ covariate_list <- function() {
     "log_hospbeds_per1k", "log_docs_per1k", "log_pollution_2010", 
     "log_pollution_2011", "log_pollution_2012", "log_pollution_2013",
     "log_pollution_2014", "log_pollution_2015", "log_pollution_2016", 
-    "log_pollution_2017", "log_pop65above_year", "log_pop65above_percent", 
-    "log_prison_count", "log_prison_rate", "log_rail_millionpassengerkm", 
-    "log_max_cases", "weekday")
+    "log_pollution_2017", "log_pop65above_percent", "log_prison_count", 
+    "log_prison_rate", "log_rail_millionpassengerkm", "log_max_cases", 
+    "weekday")
 }
 
 generate_task <- function(data, outcome, first_window = 20, time = data$days,
