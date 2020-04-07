@@ -1204,7 +1204,7 @@ setup_data <- function() {
   training <- all[is.na(all$forecastid), ]
   test <- all[is.na(all$id), ]
   
-  if((nrow_training_data != nrow(training)) | (nrow_test_data != nrow(test)){
+  if((nrow_training_data != nrow(training)) | (nrow_test_data != nrow(test))){
     stop("Error: Final training/test nrows != original training/test nrows")
   }
   
