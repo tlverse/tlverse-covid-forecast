@@ -1158,9 +1158,9 @@ setup_data <- function() {
               "population2020", "smoking2016", "females2018", "hospbeds_per1k", 
               "docs_per1k", "pollution_2010", "pollution_2011", 
               "pollution_2012", "pollution_2013", "pollution_2014", 
-              "pollution_2015", "pollution_2016", "pollution_2017", 
-              "pop65above_year", "pop65above_percent", "prison_count", 
-              "prison_rate", "rail_millionpassengerkm", "max_cases")
+              "pollution_2015", "pollution_2016", "pollution_2017",
+              "pop65above_percent", "prison_count", "prison_rate", 
+              "rail_millionpassengerkm", "max_cases")
   logged <- data[, lapply(.SD, function(x) log(x + 1)), .SDcols = to_log]
   log_names <- sprintf("log_%s", to_log)
   setnames(logged, log_names)
