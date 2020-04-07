@@ -1094,7 +1094,7 @@ setup_data <- function() {
 
   # change econ facs to numeric
   facs <- names(all2)[sapply(all2, is.factor)]
-  facs <- facs[-which(facs %in% c("Country_Region", "country_code", "continent"))]
+  facs <- facs[-which(facs %in% c("Country_Region", "country_code", "continent", "subregion"))]
   all2[facs] <- sapply(all2[facs], as.character)
   all2[facs] <- sapply(all2[facs], as.numeric)
   
