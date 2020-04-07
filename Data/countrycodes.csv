@@ -152,7 +152,7 @@
 "Montserrat","MS","MSR","500","ISO 3166-2:MS","Americas","Latin America and the Caribbean","Caribbean","019","419","029"
 "Morocco","MA","MAR","504","ISO 3166-2:MA","Africa","Northern Africa",NA,"002","015",NA
 "Mozambique","MZ","MOZ","508","ISO 3166-2:MZ","Africa","Sub-Saharan Africa","Eastern Africa","002","202","014"
-"Myanmar","MM","MMR","104","ISO 3166-2:MM","Asia","South-eastern Asia",NA,"142","035",NA
+"Burma","MM","MMR","104","ISO 3166-2:MM","Asia","South-eastern Asia",NA,"142","035",NA
 "Namibia",NA,"NAM","516","ISO 3166-2:NA","Africa","Sub-Saharan Africa","Southern Africa","002","202","018"
 "Nauru","NR","NRU","520","ISO 3166-2:NR","Oceania","Micronesia",NA,"009","057",NA
 "Nepal","NP","NPL","524","ISO 3166-2:NP","Asia","Southern Asia",NA,"142","034",NA
@@ -170,7 +170,7 @@
 "Oman","OM","OMN","512","ISO 3166-2:OM","Asia","Western Asia",NA,"142","145",NA
 "Pakistan","PK","PAK","586","ISO 3166-2:PK","Asia","Southern Asia",NA,"142","034",NA
 "Palau","PW","PLW","585","ISO 3166-2:PW","Oceania","Micronesia",NA,"009","057",NA
-"Palestine, State of","PS","PSE","275","ISO 3166-2:PS","Asia","Western Asia",NA,"142","145",NA
+"West Bank and Gaza","PS","PSE","275","ISO 3166-2:PS","Asia","Western Asia",NA,"142","145",NA
 "Panama","PA","PAN","591","ISO 3166-2:PA","Americas","Latin America and the Caribbean","Central America","019","419","013"
 "Papua New Guinea","PG","PNG","598","ISO 3166-2:PG","Oceania","Melanesia",NA,"009","054",NA
 "Paraguay","PY","PRY","600","ISO 3166-2:PY","Americas","Latin America and the Caribbean","South America","019","419","005"
@@ -242,7 +242,7 @@
 "Vanuatu","VU","VUT","548","ISO 3166-2:VU","Oceania","Melanesia",NA,"009","054",NA
 "Venezuela","VE","VEN","862","ISO 3166-2:VE","Americas","Latin America and the Caribbean","South America","019","419","005"
 "Vietnam","VN","VNM","704","ISO 3166-2:VN","Asia","South-eastern Asia",NA,"142","035",NA
-"Virgin Islands (British)","VG","VGB","092","ISO 3166-2:VG","Americas","Latin America and the Caribbean","Caribbean","019","419","029"
+"British Virgin Islands","VG","VGB","092","ISO 3166-2:VG","Americas","Latin America and the Caribbean","Caribbean","019","419","029"
 "Virgin Islands (U.S.)","VI","VIR","850","ISO 3166-2:VI","Americas","Latin America and the Caribbean","Caribbean","019","419","029"
 "Wallis and Futuna","WF","WLF","876","ISO 3166-2:WF","Oceania","Polynesia",NA,"009","061",NA
 "Western Sahara","EH","ESH","732","ISO 3166-2:EH","Africa","Northern Africa",NA,"002","015",NA
