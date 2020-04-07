@@ -126,6 +126,7 @@ generate_learners <- function(variable_stratify = "continent", stack = NULL) {
   
   if(is.null(stack)){
     # TODO integrate timeseries learners + mechanistic models
+    lrnr_gts <- make_learner(Lrnr_gts)
     
     # base library
     grid_params <- list(
@@ -137,19 +138,18 @@ generate_learners <- function(variable_stratify = "continent", stack = NULL) {
     xgb_learners <- apply(grid, MARGIN = 1, function(params_tune) {
       do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
     })
-    lrnr_lasso <- make_learner(Lrnr_glmnet, alpha = 1)
+    lrnr_lasso <- make_learner(Lrnr_glmnet)
     lrnr_glm <- make_learner(Lrnr_glm)
     lrnr_ranger <- make_learner(Lrnr_ranger)
     lrnr_earth <- make_learner(Lrnr_earth)
-    lrnr_gts <- make_learner(Lrnr_gts)
+
     stack <- make_learner(Stack, unlist(list(xgb_learners, lrnr_glm, lrnr_lasso,
                                              lrnr_ranger, lrnr_earth, lrnr_gts), 
                                         recursive = TRUE))
     
     # screeners
-    lrnr_glmnet <- make_learner(Lrnr_glmnet)
-    screener <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, threshold = 1e-2)
-    screener_flex <- make_learner(Lrnr_screener_coefs, lrnr_glmnet, threshold = 1e-3)
+    screener <- make_learner(Lrnr_screener_coefs, lrnr_lasso, threshold = 1e-1)
+    screener_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso, threshold = 1e-3)
     pipe <- make_learner(Pipeline, screener, stack)
     pipe_flex <- make_learner(Pipeline, screener_flex, stack)
     
