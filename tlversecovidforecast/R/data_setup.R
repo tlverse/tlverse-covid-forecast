@@ -1161,7 +1161,7 @@ setup_data <- function() {
               "pollution_2015", "pollution_2016", "pollution_2017", 
               "pop65above_year", "pop65above_percent", "prison_count", 
               "prison_rate", "rail_millionpassengerkm", "max_cases")
-  logged <- data[, lapply(.SD, log), .SDcols = to_log]
+  logged <- data[, lapply(.SD, function(x) log(x + 1)), .SDcols = to_log]
   log_names <- sprintf("log_%s", to_log)
   setnames(logged, log_names)
   all <- cbind(data, logged)
