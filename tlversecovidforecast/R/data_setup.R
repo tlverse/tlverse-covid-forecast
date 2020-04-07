@@ -1180,7 +1180,7 @@ setup_data <- function() {
     stop("Error: Final training/test nrows != original training/test nrows")
   }
   
-  write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
+  #write.csv(all, file = here("Data", "all_processed.csv"), row.names = FALSE)
   write.csv(training, file = here("Data", "training_processed.csv"), row.names = FALSE)
   write.csv(test, file = here("Data", "test_processed.csv"), row.names = FALSE)
 }
