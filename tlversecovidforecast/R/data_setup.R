@@ -1049,7 +1049,7 @@ setup_data <- function() {
     "pollution_2016", "pollution_2017", "pop65above_year", "pop65above_percent",
     "prisoncount_year", "prison_count", "prisonrate_year", "prison_rate",
     "rail_year", "rail_millionpassengerkm", "sars_cases", "sars_deaths",
-    "sars_recovered"
+    "sars_recovered", "subregion"
   )
 
   all <- main9[, keep_cols]
@@ -1099,7 +1099,7 @@ setup_data <- function() {
   all2[facs] <- sapply(all2[facs], as.numeric)
   
   # sl3-style imputation by continent
-  X <- data.table(all2[, c(9, 11:105)])
+  X <- data.table(all2[, c(9, 11:106)])
   processedX <- process_data(X, strata = "continent")
   final <- data.table(all2[, c(1:8, 10)], processedX)
 
@@ -1160,8 +1160,7 @@ setup_data <- function() {
               "pollution_2012", "pollution_2013", "pollution_2014", 
               "pollution_2015", "pollution_2016", "pollution_2017", 
               "pop65above_year", "pop65above_percent", "prison_count", 
-              "prison_rate", "rail_millionpassengerkm", "case_days", 
-              "case10_days", "case100_days", "max_cases")
+              "prison_rate", "rail_millionpassengerkm", "max_cases")
   logged <- data[, lapply(.SD, log), .SDcols = to_log]
   log_names <- sprintf("log_%s", to_log)
   setnames(logged, log_names)
