@@ -152,7 +152,7 @@ generate_learners <- function(variable_stratify = "continent", stack = NULL) {
     lrnr_lstm_strat <- Lrnr_multiple_ts$new(learner =  lrnr_lstm)
 
     stack <- make_learner(Stack, unlist(list(xgb_learners, lrnr_glm, lrnr_lasso,
-                                             lrnr_ranger, lrnr_earth, lrnr_gts
+                                             lrnr_ranger, lrnr_earth, lrnr_gts,
                                              lrnr_arima_strat,
                                              lrnr_expSmooth_strat,
                                              lrnr_lstm_strat
