@@ -164,16 +164,15 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
                                    threshold = 1e-1)
     screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso, 
                                         threshold = 1e-3)
-    screener_rf <- make_learner(Lrnr_screener_randomForest, ntree = 500, 
-                                nVar = 15)
+    #screener_rf <- make_learner(Lrnr_screener_randomForest, ntree = 500, 
+    #                            nVar = 15)
     # pipelines
     screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
     screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex, stack)
-    screen_rf_pipe <- make_learner(Pipeline, screener_rf, stack)
+    #screen_rf_pipe <- make_learner(Pipeline, screener_rf, stack)
     
     ### final stack
-    stack <- make_learner(Stack, screen_lasso_pipe, screen_lasso_flex_pipe,
-                          screen_rf_pipe)
+    stack <- make_learner(Stack, screen_lasso_pipe, screen_lasso_flex_pipe)
   }
   
   ### metalearner
