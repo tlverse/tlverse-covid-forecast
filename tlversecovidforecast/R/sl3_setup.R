@@ -142,6 +142,7 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     lrnr_earth <- make_learner(Lrnr_earth)
     
     # time series learners
+    lrnr_alan <- make_learner(Lrnr_alan_pois)
     lrnr_gts <- make_learner(Lrnr_gts)
     lrnr_arima <- make_learner(Lrnr_arima)
     lrnr_expSmooth <- make_learner(Lrnr_expSmooth)
@@ -156,7 +157,7 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     stack <- make_learner(
       Stack, 
       unlist(list(xgb_learners, lrnr_glm, lrnr_lasso, lrnr_ranger, lrnr_earth,
-                  lrnr_gts, lrnr_arima_strat, lrnr_lstm_strat, 
+                  lrnr_gts, lrnr_alan, lrnr_arima_strat, lrnr_lstm_strat, 
                   lrnr_expSmooth_strat), recursive = TRUE)
       )
     
@@ -165,12 +166,9 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
                                    threshold = 1e-1)
     screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso, 
                                         threshold = 1e-3)
-    #screener_rf <- make_learner(Lrnr_screener_randomForest, ntree = 500, 
-    #                            nVar = 15)
     # pipelines
     screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
     screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex, stack)
-    #screen_rf_pipe <- make_learner(Pipeline, screener_rf, stack)
     
     ### final stack
     stack <- make_learner(Stack, screen_lasso_pipe, screen_lasso_flex_pipe)
