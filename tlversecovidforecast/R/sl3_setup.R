@@ -142,9 +142,21 @@ generate_learners <- function(variable_stratify = "continent", stack = NULL) {
     lrnr_glm <- make_learner(Lrnr_glm)
     lrnr_ranger <- make_learner(Lrnr_ranger)
     lrnr_earth <- make_learner(Lrnr_earth)
+    
+    lrnr_arima <- make_learner(Lrnr_arima)
+    lrnr_expSmooth <- make_learner(Lrnr_expSmooth)
+    lrnr_lstm <- make_learner(Lrnr_lstm, epochs = 500)
+    #Do one by one for now
+    lrnr_arima_strat <- Lrnr_multiple_ts$new(learner =  lrnr_arima)
+    lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner =  lrnr_expSmooth)
+    lrnr_lstm_strat <- Lrnr_multiple_ts$new(learner =  lrnr_lstm)
 
     stack <- make_learner(Stack, unlist(list(xgb_learners, lrnr_glm, lrnr_lasso,
-                                             lrnr_ranger, lrnr_earth, lrnr_gts), 
+                                             lrnr_ranger, lrnr_earth, lrnr_gts
+                                             lrnr_arima_strat,
+                                             lrnr_expSmooth_strat,
+                                             lrnr_lstm_strat
+                                             ), 
                                         recursive = TRUE))
     
     # screeners
