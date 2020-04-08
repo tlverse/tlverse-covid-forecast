@@ -145,7 +145,8 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     lrnr_gts <- make_learner(Lrnr_gts)
     lrnr_arima <- make_learner(Lrnr_arima)
     lrnr_expSmooth <- make_learner(Lrnr_expSmooth)
-    lrnr_lstm <- make_learner(Lrnr_lstm, epochs = 500)
+    lrnr_lstm <- make_learner(Lrnr_lstm, epochs = 500, batch_size = 10, 
+                              early_stop = TRUE)
     # do one by one for now
     lrnr_arima_strat <- Lrnr_multiple_ts$new(learner = lrnr_arima)
     lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
