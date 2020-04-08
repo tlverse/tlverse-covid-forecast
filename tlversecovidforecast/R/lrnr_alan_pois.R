@@ -54,8 +54,7 @@ Lrnr_alan_pois <- R6Class(
       basis <- list(y=dt$newcases, x= as.matrix(dt[,list(elapse, elapse2, elapse3)]))
       return(basis)
       
-    }
-    
+    },
     .train = function(task) {
       # Alan's fit
       # glm.Pois = glm(newcases~elapse+elapse2+elapse3,family = poisson(),data=tst)
