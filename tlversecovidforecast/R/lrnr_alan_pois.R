@@ -54,7 +54,7 @@ Lrnr_alan_pois <- R6Class(
       basis <- list(y=dt$newcases, x= as.matrix(dt[,list(elapse, elapse2, elapse3)]))
       return(basis)
       
-    }
+    },
     
     .train = function(task) {
       # Alan's fit
@@ -68,13 +68,9 @@ Lrnr_alan_pois <- R6Class(
       link_fun <- args$family$linkfun
       
       
-      SuppressGivenWarnings(
-        {
-          fit_object <- sl3:::call_with_args(stats::glm.fit, args)
-        },
-        GetWarningsToSuppress()
-      )
       
+      fit_object <- sl3:::call_with_args(stats::glm.fit, args)
+     
       fit_object$linear.predictors <- NULL
       fit_object$weights <- NULL
       fit_object$prior.weights <- NULL
