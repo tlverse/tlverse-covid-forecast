@@ -11,8 +11,8 @@ devtools::load_all("tlversecovidforecast")
 # simple covariate screening
 sl3_debug_mode()
 sl <- generate_learners()
-data <- fread(here("Data", "training_processed.csv"))
-test_data <- fread(here("Data", "test_processed.csv"))
+data <- read.csv(here("Data", "training_processed.csv"))
+test_data <- read.csv(here("Data", "test_processed.csv"))
 
 # generate case preds
 log_cases_task <- generate_task(data, "log_cases")
