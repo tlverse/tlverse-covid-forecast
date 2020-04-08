@@ -122,13 +122,11 @@ metalearner_linear_bound <- function(alpha, X) {
 }
 
 #' @import sl3
-generate_learners <- function(variable_stratify = "continent", stack = NULL) {
+generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
   
   if(is.null(stack)){
-    # TODO integrate timeseries learners + mechanistic models
-    lrnr_gts <- make_learner(Lrnr_gts)
     
-    # base library
+    ### base library 
     grid_params <- list(
       max_depth = c(2, 4, 6, 8),
       eta = c(0.001, 0.01, 0.1, 0.2, 0.3)
@@ -143,41 +141,54 @@ generate_learners <- function(variable_stratify = "continent", stack = NULL) {
     lrnr_ranger <- make_learner(Lrnr_ranger)
     lrnr_earth <- make_learner(Lrnr_earth)
     
+    # time series learners
+    lrnr_gts <- make_learner(Lrnr_gts)
     lrnr_arima <- make_learner(Lrnr_arima)
     lrnr_expSmooth <- make_learner(Lrnr_expSmooth)
     lrnr_lstm <- make_learner(Lrnr_lstm, epochs = 500)
-    #Do one by one for now
-    lrnr_arima_strat <- Lrnr_multiple_ts$new(learner =  lrnr_arima)
-    lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner =  lrnr_expSmooth)
-    lrnr_lstm_strat <- Lrnr_multiple_ts$new(learner =  lrnr_lstm)
-
-    stack <- make_learner(Stack, unlist(list(xgb_learners, lrnr_glm, lrnr_lasso,
-                                             lrnr_ranger, lrnr_earth, lrnr_gts,
-                                             lrnr_arima_strat,
-                                             lrnr_expSmooth_strat,
-                                             lrnr_lstm_strat
-                                             ), 
-                                        recursive = TRUE))
+    # do one by one for now
+    lrnr_arima_strat <- Lrnr_multiple_ts$new(learner = lrnr_arima)
+    lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
+    lrnr_lstm_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm)
     
-    # screeners
-    screener <- make_learner(Lrnr_screener_coefs, lrnr_lasso, threshold = 1e-1)
-    screener_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso, threshold = 1e-3)
-    pipe <- make_learner(Pipeline, screener, stack)
-    pipe_flex <- make_learner(Pipeline, screener_flex, stack)
+    ### stack of base learners
+    stack <- make_learner(
+      Stack, 
+      unlist(list(xgb_learners, lrnr_glm, lrnr_lasso, lrnr_ranger, lrnr_earth,
+                  lrnr_gts, lrnr_arima_strat, lrnr_lstm_strat, 
+                  lrnr_expSmooth_strat), recursive = TRUE)
+      )
     
-    # stack
-    stack <- make_learner(Stack, pipe, pipe_flex)
+    ### screeners
+    screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso, 
+                                   threshold = 1e-1)
+    screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso, 
+                                        threshold = 1e-3)
+    screener_rf <- make_learner(Lrnr_screener_randomForest, ntree = 500, 
+                                nVar = 15)
+    # pipelines
+    screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
+    screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex, stack)
+    screen_rf_pipe <- make_learner(Pipeline, screener_rf, stack)
+    
+    ### final stack
+    stack <- make_learner(Stack, screen_lasso_pipe, screen_lasso_flex_pipe,
+                          screen_rf_pipe)
   }
   
-  # metalearner
+  ### metalearner
   metalearner_competition <- make_learner(
-    Lrnr_solnp, metalearner_linear_bound,
-    loss_squared_error
+    Lrnr_solnp, metalearner_linear_bound,loss_squared_error
   )
-  stratified_metalearner <- Lrnr_stratified$new(learner = metalearner_competition,
-                                                variable_stratify = variable_stratify)
-  
-  # super learner
-  sl <- make_learner(Lrnr_sl, stack, stratified_metalearner)
+  if(metalearner_stratified){
+    stratified_metalearner <- Lrnr_stratified$new(
+      learner = metalearner_competition, variable_stratify = "continent"
+    )
+    
+    ### super learner
+    sl <- make_learner(Lrnr_sl, stack, stratified_metalearner)
+  } else {
+    sl <- make_learner(Lrnr_sl, stack, metalearner_competition)
+  }
   return(sl)
 }
