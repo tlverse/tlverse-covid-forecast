@@ -1,6 +1,7 @@
 library(here)
 library(tidyverse)
 library(data.table)
+remotes::install_github("tlverse/origami@devel")
 remotes::install_github("tlverse/sl3@timeseries-overhaul")
 library(future)
 library(sl3)
