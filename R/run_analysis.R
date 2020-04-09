@@ -6,9 +6,12 @@ remotes::install_github("tlverse/sl3@timeseries-overhaul")
 library(future)
 library(sl3)
 
+# get/set miniconda python for kerasR
+reticulate::use_python(system("which python3"))
+
 # data.table threading vs. future (probably unnecessary)
-dt_cores <- as.integer(unname(round(0.25 * availableCores())))
-future_cores <- as.integer(availableCores() - dt_cores)
+dt_cores <- as.integer(unname(round(0.2 * availableCores())))
+future_cores <- as.integer(unname(availableCores()) - dt_cores)
 setDTthreads(dt_cores)
 plan(multiprocess, workers = future_cores)
 
