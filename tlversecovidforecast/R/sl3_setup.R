@@ -128,8 +128,8 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     
     ### base library 
     grid_params <- list(
-      max_depth = c(2, 4, 6, 8),
-      eta = c(0.001, 0.01, 0.1, 0.2, 0.3)
+      max_depth = c(2, 5, 8),
+      eta = c(0.005, 0.1, 0.25)
     )
     grid <- expand.grid(grid_params, KEEP.OUT.ATTRS = FALSE)
     params_default <- list(nthread = getOption("sl.cores.learners", 1))
@@ -139,26 +139,29 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     lrnr_lasso <- make_learner(Lrnr_glmnet)
     lrnr_glm <- make_learner(Lrnr_glm)
     lrnr_ranger <- make_learner(Lrnr_ranger)
-    lrnr_earth <- make_learner(Lrnr_earth)
+    lrnr_polspline <- make_learner(Lrnr_polspline)
     
     # time series learners
     lrnr_alan <- make_learner(Lrnr_alan_pois)
     lrnr_gts <- make_learner(Lrnr_gts)
     lrnr_arima <- make_learner(Lrnr_arima)
     lrnr_expSmooth <- make_learner(Lrnr_expSmooth)
-    lrnr_lstm <- make_learner(Lrnr_lstm, epochs = 500, batch_size = 10, 
-                              early_stop = TRUE)
+    lrnr_lstm10 <- make_learner(Lrnr_lstm, epochs = 500, batch_size = 10, 
+                                early_stop = TRUE)
+    lrnr_lstm1 <- make_learner(Lrnr_lstm, epochs = 500, batch_size = 1, 
+                               early_stop = TRUE)
     # do one by one for now
     lrnr_arima_strat <- Lrnr_multiple_ts$new(learner = lrnr_arima)
     lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
-    lrnr_lstm_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm)
+    lrnr_lstm10_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm10)
+    lrnr_lstm1_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm1)
     
     ### stack of base learners
     stack <- make_learner(
       Stack, 
-      unlist(list(xgb_learners, lrnr_glm, lrnr_lasso, lrnr_ranger, lrnr_earth,
-                  lrnr_gts, lrnr_alan, lrnr_arima_strat, lrnr_lstm_strat, 
-                  lrnr_expSmooth_strat), recursive = TRUE)
+      unlist(list(xgb_learners, lrnr_glm, lrnr_lasso, lrnr_ranger, lrnr_polspline,
+                  lrnr_gts, lrnr_alan, lrnr_arima_strat, lrnr_lstm10_strat, 
+                  lrnr_lstm1_strat, lrnr_expSmooth_strat), recursive = TRUE)
       )
     
     ### screeners
