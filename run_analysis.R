@@ -1,18 +1,25 @@
 library(here)
 library(tidyverse)
 library(data.table)
-devtools::install_github("tlverse/sl3@timeseries-overhaul")
+remotes::install_github("tlverse/sl3@timeseries-overhaul")
+library(future)
 library(sl3)
 
-# load helper package
-devtools::document("tlversecovidforecast")
-devtools::load_all("tlversecovidforecast")
+# data.table threading vs. future (probably unnecessary)
+dt_cores <- as.integer(unname(round(0.25 * availableCores())))
+future_cores <- as.integer(availableCores() - dt_cores)
+setDTthreads(dt_cores)
+plan(multiprocess, workers = future_cores)
 
-# simple covariate screening
+# load helper package
+devtools::document(here("tlversecovidforecast"))
+devtools::load_all(here("tlversecovidforecast"))
+
+# read data, make learners 
 sl3_debug_mode()
 sl <- generate_learners()
-data <- read.csv(here("Data", "training_processed.csv"))
-test_data <- read.csv(here("Data", "test_processed.csv"))
+data <- read_csv(here("Data", "training_processed.csv"))
+test_data <- read_csv(here("Data", "test_processed.csv"))
 
 # generate case preds
 log_cases_task <- generate_task(data, "log_cases")
@@ -40,6 +47,5 @@ names(ex_submission)
 submission <- data.table(ForecastId = test_data$forecastid,
                          ConfirmedCases = test_cases_preds,
                          Fatalities = test_fatalities_preds)
-
 submission <- submission[order(ForecastId)]
-write.csv(submission, here("Data", "our_submission.csv"), row.names = FALSE)
+write_csv(submission, here("Data", "tlverse_submission.csv"))
