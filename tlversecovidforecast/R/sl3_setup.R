@@ -101,6 +101,7 @@ generate_task <- function(data, outcome, first_window = 20, time = data$days,
   nodes <- list(
     outcome = outcome,
     covariates = covariate_list(),
+    strata_vars = c("continent"),
     time = "days",
     id = "region"
   )
