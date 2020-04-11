@@ -23,11 +23,11 @@ setup_data <- function() {
   ##############################################################################
   # week 2 data
   ##############################################################################
-  test_data <- read.csv(here("Data/week3", "test.csv"))
-  train_data <- read.csv(here("Data/week3", "train.csv"))
+  test_data <- read.csv(here("Data/week4", "test.csv"))
+  train_data <- read.csv(here("Data/week4", "train.csv"))
 
-  nrow_test_data <- nrow(test_data) # 13158 rows in test
-  nrow_train_data <- nrow(train_data) # 22950 rows in training
+  nrow_test_data <- nrow(test_data) # 13459 rows in test
+  nrow_train_data <- nrow(train_data) # 24727 rows in training
 
   # make some of the Province_State seperate regions
   test_data$region <- test_data$Country_Region
@@ -111,6 +111,15 @@ setup_data <- function() {
   )
   test_data$region <- ifelse(test_data$Province_State == "Turks and Caicos Islands",
                              "Turks and Caicos Islands", as.character(test_data$region)
+  )
+  test_data$region <- ifelse(test_data$Province_State == "Saint Pierre and Miquelon",
+                             "Saint Pierre and Miquelon", as.character(test_data$region)
+  )
+  test_data$region <- ifelse(test_data$Province_State == "Bonaire, Sint Eustatius and Saba",
+                             "Bonaire, Sint Eustatius and Saba", as.character(test_data$region)
+  )
+  test_data$region <- ifelse(test_data$Province_State == "Falkland Islands (Malvinas)",
+                             "Falkland Islands (Malvinas)", as.character(test_data$region)
   )
   train_data <- merge(train_data, 
                       test_data[, colnames(test_data) %in% c("Province_State","Country_Region","region")],
@@ -781,9 +790,9 @@ setup_data <- function() {
   main <- rbind(train_data, test_data)
 
   # make sure we have same test and train data at end
-  nrow(main) # 36108
-  nrow(test_data) # 13158
-  nrow(train_data) # 22950
+  nrow(main) # 38186
+  nrow(test_data) # 13459
+  nrow(train_data) # 24727
 
   ######################## merge time-varying covariates #######################
   main_us <- filter(main, region == "US")
@@ -911,7 +920,7 @@ setup_data <- function() {
   )
   ########################## merge baseline data ###############################
   geo <- read.csv(file = here("Data", "region_metadata.csv"))
-  
+
   main5 <- merge(main4[, -10], geo,
     by = c("Country_Region", "Province_State"),
     all.x = TRUE
@@ -1049,8 +1058,7 @@ setup_data <- function() {
     "pollution_2016", "pollution_2017", "pop65above_year", "pop65above_percent",
     "prisoncount_year", "prison_count", "prisonrate_year", "prison_rate",
     "rail_year", "rail_millionpassengerkm", "sars_cases", "sars_deaths",
-    "sars_recovered", "subregion"
-  )
+    "sars_recovered", "subregion")
 
   all <- main9[, keep_cols]
   
@@ -1094,13 +1102,14 @@ setup_data <- function() {
 
   # change econ facs to numeric
   facs <- names(all2)[sapply(all2, is.factor)]
-  facs <- facs[-which(facs %in% c("Country_Region", "country_code", "continent", "subregion"))]
+  facs <- facs[-which(facs %in% c("Country_Region", "country_code", "continent", 
+                                  "subregion"))]
   all2[facs] <- sapply(all2[facs], as.character)
   all2[facs] <- sapply(all2[facs], as.numeric)
   
   # sl3-style imputation by continent
   X <- data.table(all2[, c(9, 11:106)])
-  processedX <- process_data(X, strata = "continent")
+  processedX <- process_data(X, strata = "continent")[,-20]
   final <- data.table(all2[, c(1:8, 10)], processedX)
 
   # format global regions
