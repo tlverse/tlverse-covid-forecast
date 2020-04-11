@@ -47,8 +47,8 @@ alan_lrnr <- make_learner(Lrnr_alan_pois)
 gts_lrnr <- make_learner(Lrnr_gts)
 arima_lrnr <- make_learner(Lrnr_arima)
 expsmooth_lrnr <- make_learner(Lrnr_expSmooth)
-arima_strat_lrnr <- Lrnr_multiple_ts$new(learner = lrnr_arima)
-expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
+arima_strat_lrnr <- Lrnr_multiple_ts$new(learner = arima_lrnr)
+expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = expsmooth_lrnr)
 
 # library for Stack
 stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr, lasso_lrnr,
@@ -62,18 +62,17 @@ stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr, lasso_lrnr,
 stack_lrnrs <- make_learner(Stack, stack_lib)
 
 # LASSO screener
-screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
-                               threshold = 1e-2)
 #screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                #threshold = 1e-1)
 #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                     #threshold = 1e-3)
+screener_lasso <- make_learner(Lrnr_screener_coefs, lasso_lrnr,
+                               threshold = 1e-2)
 
 # pipelines
 #screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
 #screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex, stack)
 screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack_lrnrs)
-
 
 # final stack for SL
 #stack_screeners <- make_learner(Stack, screen_lasso_pipe,
@@ -83,39 +82,35 @@ sl_stack_run_forrest_run <- make_learner(Stack, screen_lasso_pipe)
 # simple covariate screening
 sl3_debug_mode()
 sl <- generate_learners(stack = sl_stack_run_forrest_run)
-data <- read.csv(here("Data", "training_processed.csv"))
-test_data <- read.csv(here("Data", "test_processed.csv"))
+data <- read_csv(here("Data", "training_processed.csv"))
+test_data <- read_csv(here("Data", "test_processed.csv"))
 
-# generate case preds
+# generate case task and training predictions
 log_cases_task <- generate_task(data, "log_cases")
-test_log_cases_task <- generate_task(test_data, "log_cases")
-
 cases_fit <- sl$train(log_cases_task)
-cv_risk_table <- cases_fit$cv_risk(loss_squared_error)
-print(paste0("CV Risk for Log Cases Outcome", cv_risk_table))
+cv_risk_table_cases <- cases_fit$cv_risk(loss_squared_error)
+print(cv_risk_table_cases)
 
+# for testing data, generate case task and predictions
+test_log_cases_task <- generate_task(test_data, "log_cases")
 test_preds <- cases_fit$predict(test_log_cases_task)
 test_cases_preds <- exp(test_preds) - 1
 
-# generate fatalities preds
+# train on fatalities
 log_fatalities_task <- generate_task(data, "log_fatalities")
-test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
-
 fatalities_fit <- sl$train(log_fatalities_task)
-cv_risk_table2 <- fatalities_fit$cv_risk(loss_squared_error)
-print(paste0("CV Risk for Log Fatalities Outcome", cv_risk_table2))
+cv_risk_table_fatalities <- fatalities_fit$cv_risk(loss_squared_error)
+print(cv_risk_table_fatalities)
+
+# for testing data, generate case task and predictions
+test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
 test_preds <- fatalities_fit$predict(test_log_fatalities_task)
 test_fatalities_preds <- exp(test_preds) - 1
 
 # generate submission
-ex_submission <- fread(here("Data", "week3", "submission.csv"))
-names(ex_submission)
-
-submission <- data.table(ForecastId = test_data$forecastid,
-                         ConfirmedCases = test_cases_preds,
-                         Fatalities = test_fatalities_preds)
-
+ex_submission <- fread(here("Data", "week2", "submission.csv"))
+submission <- as.data.table(list(test_data$forecastid, test_cases_preds,
+                                 test_fatalities_preds))
+setnames(submission, names(ex_submission))
 submission <- submission[order(ForecastId)]
-write.csv(submission, here("Data", "our_submission.csv"), row.names = FALSE)
-
-print(paste0("Run time: ", proc.time()-start))
+write_csv(submission, here("Data", "tlverse_submission.csv"))
