@@ -5,6 +5,9 @@ remotes::install_github("tlverse/origami@devel")
 remotes::install_github("tlverse/sl3@timeseries-overhaul")
 library(future)
 library(sl3)
+library(knitr)
+library(kableExtra)
+source(here("R", "utils.R"))
 
 # get/set miniconda python for kerasR
 reticulate::use_python(system("which python3"))
@@ -19,7 +22,7 @@ plan(multiprocess, workers = future_cores)
 devtools::document(here("tlversecovidforecast"))
 devtools::load_all(here("tlversecovidforecast"))
 
-### base library 
+# base library
 grid_params <- list(
   max_depth = c(2, 5, 8),
   eta = c(0.001, 0.05, 0.2),
@@ -88,8 +91,7 @@ test_data <- read_csv(here("Data", "test_processed.csv"))
 # generate case task and training predictions
 log_cases_task <- generate_task(data, "log_cases")
 cases_fit <- sl$train(log_cases_task)
-cv_risk_table_cases <- cases_fit$cv_risk(loss_squared_error)
-print(cv_risk_table_cases)
+make_sl_table(cases_fit, file_out = "cv_risk_cases", format = "markdown")
 
 # for testing data, generate case task and predictions
 test_log_cases_task <- generate_task(test_data, "log_cases")
@@ -99,8 +101,8 @@ test_cases_preds <- exp(test_preds) - 1
 # train on fatalities
 log_fatalities_task <- generate_task(data, "log_fatalities")
 fatalities_fit <- sl$train(log_fatalities_task)
-cv_risk_table_fatalities <- fatalities_fit$cv_risk(loss_squared_error)
-print(cv_risk_table_fatalities)
+make_sl_table(fatalities_fit, file_out = "cv_risk_fatalities",
+              format = "markdown")
 
 # for testing data, generate case task and predictions
 test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
