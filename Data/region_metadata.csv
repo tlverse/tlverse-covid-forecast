@@ -110,16 +110,17 @@ Eritrea,,15.1794,39.7823,Africa,3497117,117600,Sub-Saharan Africa
 Estonia,,58.5953,25.0136,Europe,1325648,45227,Northern Europe
 Eswatini,,-26.5225,31.4659,Africa,1148130,17364,Sub-Saharan Africa
 Ethiopia,,9.145,40.4897,Africa,112078730,1104300,Sub-Saharan Africa
-Fiji,,-17.7134,178.065,Oceania,889953,18272,Melanesia
+Fiji,,-17.7134,178.065,Oceania,889953,18272,Oceania
 Finland,,64,26,Europe,5532156,338424,Northern Europe
 France,French Guiana,3.9339,-53.1258,Europe,269352,83534,Latin America and the Caribbean
-France,French Polynesia,-17.6797,149.4068,Europe,275918,4167,Polynesia
+France,French Polynesia,-17.6797,149.4068,Europe,275918,4167,Oceania
 France,Guadeloupe,16.25,-61.5833,Europe,394110,1628,Latin America and the Caribbean
 France,Martinique,14.6415,-61.0242,Europe,376480,1128,Latin America and the Caribbean
 France,Mayotte,-12.8275,45.1662,Europe,256518,374,Sub-Saharan Africa
-France,New Caledonia,-20.9043,165.618,Europe,271407,18576,Melanesia
+France,New Caledonia,-20.9043,165.618,Europe,271407,18576,Oceania
 France,Reunion,-21.1351,55.2471,Europe,852924,2504,Western Europe
 France,Saint Barthelemy,17.9,-62.8333,Europe,9793,25,Latin America and the Caribbean
+France,Saint Pierre and Miquelon,46.7791,-56.1773,Americas,58000,242,Northern America
 France,St Martin,18.0708,-63.0501,Europe,77741,53,Latin America and the Caribbean
 France,,46.2276,2.2137,Europe,65129728,640679,Western Europe
 Gabon,,-0.8037,11.6094,Africa,2172579,267668,Sub-Saharan Africa
@@ -163,6 +164,7 @@ Liechtenstein,,47.14,9.55,Europe,38019,160,Western Europe
 Lithuania,,55.1694,23.8813,Europe,2759627,65300,Northern Europe
 Luxembourg,,49.8153,6.1296,Europe,615729,2586,Western Europe
 Madagascar,,-18.7669,46.8691,Africa,26969307,587041,Sub-Saharan Africa
+Malawi,,-13.25,34.3,Africa,19129952,118480,Sub-Saharan Africa
 Malaysia,,2.5,112.5,Asia,31949777,330803,South-eastern Asia
 Maldives,,3.2028,73.2207,Asia,530953,300,Southern Asia
 Mali,,17.570692,-3.996166,Africa,19658031,1240192,Sub-Saharan Africa
@@ -180,6 +182,7 @@ MS Zaandam,,0,0,Oceania,1400,0,Cruise
 Namibia,,-22.9576,18.4904,Africa,2494530,825615,Sub-Saharan Africa
 Nepal,,28.1667,84.25,Asia,28608710,147181,Southern Asia
 Netherlands,Aruba,12.5186,-70.0358,Europe,112309,180,Latin America and the Caribbean
+Netherlands,"Bonaire, Sint Eustatius and Saba",12.2,-68.25,Americas,25157,328,Latin America and the Caribbean
 Netherlands,Curacao,12.1696,-68.99,Europe,158665,444,Latin America and the Caribbean
 Netherlands,Sint Maarten,18.0425,-63.0548,Europe,41486,34,Latin America and the Caribbean
 Netherlands,,52.1326,5.2913,Europe,17097130,41850,Western Europe
@@ -192,7 +195,7 @@ Norway,,60.472,8.4689,Europe,5378857,323802,Northern Europe
 Oman,,21,57,Asia,4974986,309500,Western Asia
 Pakistan,,30.3753,69.3451,Asia,216565318,907132,Southern Asia
 Panama,,8.538,-80.7821,Americas,4246439,75417,Latin America and the Caribbean
-Papua New Guinea,,-6.315,143.9555,Oceania,8776109,462840,Melanesia
+Papua New Guinea,,-6.315,143.9555,Oceania,8776109,462840,Oceania
 Paraguay,,-23.4425,-58.4438,Americas,7044636,406752,Latin America and the Caribbean
 Peru,,-9.19,-75.0152,Americas,32510453,1285216,Latin America and the Caribbean
 Philippines,,13,122,Asia,108116615,3.00E+05,South-eastern Asia
@@ -206,6 +209,7 @@ Saint Kitts and Nevis,,17.357822,-62.782998,Americas,52823,261,Latin America and
 Saint Lucia,,13.9094,-60.9789,Americas,182790,616,Latin America and the Caribbean
 Saint Vincent and the Grenadines,,12.9843,-61.2872,Americas,110589,389,Latin America and the Caribbean
 San Marino,,43.9424,12.4578,Europe,33860,61,Southern Europe
+Sao Tome and Principe,,0,6.52,Africa,219159,1000,Sub-Saharan Africa
 Saudi Arabia,,24,45,Asia,34268528,2149690,Western Asia
 Senegal,,14.4974,-14.4524,Africa,16296364,196722,Sub-Saharan Africa
 Serbia,,44.0165,21.0059,Europe,8772235,88361,Southern Europe
@@ -216,6 +220,7 @@ Slovakia,,48.669,19.699,Europe,5457013,49037,Eastern Europe
 Slovenia,,46.1512,14.9955,Europe,2078654,20273,Southern Europe
 Somalia,,5.1521,46.1996,Africa,15442905,637657,Sub-Saharan Africa
 South Africa,,-30.5595,22.9375,Africa,58558270,1221037,Sub-Saharan Africa
+South Sudan,,5,31.5,Africa,11193725,619745,Sub-Saharan Africa
 Spain,,40,-4,Europe,46736776,505992,Southern Europe
 Sri Lanka,,7,81,Asia,21323733,65610,Southern Asia
 Sudan,,12.8628,30.2176,Africa,42813238,1861484,Northern Africa
@@ -239,6 +244,7 @@ United Kingdom,Bermuda,32.3078,-64.7505,Europe,71176,53,Northern America
 United Kingdom,British Virgin Islands,18.436539,-64.618103,Americas,30231,153,Latin America and the Caribbean
 United Kingdom,Cayman Islands,19.3133,-81.2546,Europe,68076,264,Latin America and the Caribbean
 United Kingdom,Channel Islands,49.3723,-2.3644,Europe,170499,118,Northern Europe
+United Kingdom,Falkland Islands (Malvinas),-51.5,-59.83,Americas,3480,12170,Latin America and the Caribbean
 United Kingdom,Gibraltar,36.1408,-5.3536,Europe,32194,7,Southern Europe
 United Kingdom,Isle of Man,54.2361,-4.5481,Europe,83314,572,Northern Europe
 United Kingdom,Montserrat,16.7425,-62.1874,Europe,4649,102,Latin America and the Caribbean
@@ -256,7 +262,7 @@ US,Delaware,39.3185,-75.5071,Americas,973764,6446,Northern America
 US,District of Columbia,38.8974,-77.0268,Americas,705749,177,Northern America
 US,Florida,27.7663,-81.6868,Americas,21477737,170312,Northern America
 US,Georgia,33.0406,-83.6431,Americas,10617423,153910,Northern America
-US,Guam,13.4443,144.7937,Americas,165718,1478,Micronesia
+US,Guam,13.4443,144.7937,Americas,165718,1478,Oceania
 US,Hawaii,21.0943,-157.4983,Americas,1415872,28313,Northern America
 US,Idaho,44.2405,-114.4788,Americas,1787147,216443,Northern America
 US,Illinois,40.3495,-88.9861,Americas,12671821,149995,Northern America
@@ -303,5 +309,6 @@ Uzbekistan,,41.3775,64.5853,Asia,32981716,447400,Central Asia
 Venezuela,,6.4238,-66.5897,Americas,28515829,916445,Latin America and the Caribbean
 Vietnam,,16,108,Asia,96462106,331212,South-eastern Asia
 West Bank and Gaza,,31.8,34.8,Asia,5000000,5460,Western Asia
+Western Sahara,,24,-13,Africa,597339,266000,Northern Africa
 Zambia,,-15.4167,28.2833,Africa,17861030,752612,Sub-Saharan Africa
 Zimbabwe,,-19.0154,29.1549,Africa,14645468,390757,Sub-Saharan Africa
