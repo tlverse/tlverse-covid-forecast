@@ -19,12 +19,10 @@ make_sl_table <- function(sl_lrnr_fit,
   # create CV-risk output
   sl_lrnr_risks <- sl_lrnr_fit$cv_risk(loss_fun)
 
-  # check metalearner fits and collapse coefficients if necessary
+  # check metalearner fits and collapse coefficients across regions
   coefs <- sapply(sl_lrnr_fit$fit_object$cv_meta_fit$fit_object, stats::coef)
-  if (dim(coefs)) {
-    coefs_collapsed <- as.numeric(apply(coefs, 1, mean))
-    sl_lrnr_risks[, 2] <- coefs_collapsed
-  }
+  coefs_collapsed <- as.numeric(apply(coefs, 1, mean))
+  sl_lrnr_risks[, 2] <- coefs_collapsed
 
   # open file for writing table
   sink(here::here("tables", paste0(file_out, format_ext)))
