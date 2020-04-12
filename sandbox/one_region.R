@@ -39,7 +39,6 @@ lasso_lrnr <- Lrnr_glmnet$new(alpha = 1, nfolds = 3)
 enet_lrnr_reg25 <- Lrnr_glmnet$new(alpha = 0.25, nfolds = 3)
 enet_lrnr_reg50 <- Lrnr_glmnet$new(alpha = 0.50, nfolds = 3)
 enet_lrnr_reg75 <- Lrnr_glmnet$new(alpha = 0.75, nfolds = 3)
-ranger_lrnr_base <- Lrnr_ranger$new()
 ranger_lrnr_nt50 <- Lrnr_ranger$new(num.trees = 50)
 ranger_lrnr_nt100 <- Lrnr_ranger$new(num.trees = 100)
 ranger_lrnr_nt500 <- Lrnr_ranger$new(num.trees = 500)
@@ -56,7 +55,7 @@ expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = expsmooth_lrnr)
 # library for Stack
 stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr, lasso_lrnr,
                          enet_lrnr_reg25, enet_lrnr_reg50, enet_lrnr_reg75,
-                         ranger_lrnr_base, ranger_lrnr_nt50, ranger_lrnr_nt100,
+                         ranger_lrnr_nt50, ranger_lrnr_nt100,
                          ranger_lrnr_nt500, earth_lrnr, xgb_lrnrs, alan_lrnr,
                          gts_lrnr, arima_strat_lrnr, expsmooth_strat_lrnr),
                     recursive = TRUE)
