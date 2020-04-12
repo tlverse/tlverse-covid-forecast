@@ -21,11 +21,7 @@ make_sl_table <- function(sl_lrnr_fit,
 
   # open file for writing table
   sink(here::here("tables", paste0(file_out, format_ext)))
-  sl_lrnr_risks %>%
-    #[, c(1, 2, 6, 3, 7)]
-    dplyr::select(x = x,
-                  y = y,
-                  z = z) %>%
+  sl_lrnr_risks[, c(1, 2, 6, 3, 7)] %>%
     knitr::kable(format = format,
                  booktabs = TRUE,
                  label = "sl_coefs_risks",
