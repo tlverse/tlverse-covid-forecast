@@ -33,6 +33,8 @@ xgb_lrnrs <- apply(grid_params, MARGIN = 1, function(params_tune) {
   do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
 })
 
+xgb_lrnrs <- xgb_lrnrs[14:18]
+
 mean_lrnr <- Lrnr_mean$new()
 glm_lrnr <- Lrnr_glm$new()
 ridge_lrnr <- Lrnr_glmnet$new(alpha = 0, nfolds = 3)
@@ -54,7 +56,7 @@ arima_strat_lrnr <- Lrnr_multiple_ts$new(learner = arima_lrnr)
 expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = expsmooth_lrnr)
 
 # library for Stack
-stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr),
+stack_lib <- unlist(list(mean_lrnr, glm_lrnr, xgb_lrnrs),
                     recursive = TRUE)
 
 # make stack for SL
@@ -66,7 +68,7 @@ stack_lrnrs <- make_learner(Stack, stack_lib)
 #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                     #threshold = 1e-3)
 screener_lasso <- make_learner(Lrnr_screener_coefs, lasso_lrnr,
-                               threshold = 1e-2)
+                               threshold = 1e-3)
 
 # pipelines
 #screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
@@ -95,12 +97,33 @@ italy_data <- data[data$region == "Italy", ]
 
 # fit on Italy and check re-substitution performance
 italy_fit <- sl$train(italy_task)
-italy_data$preds <- italy_fit$predict()
+
+# use first val set prediction for each obs
+val_preds <- italy_fit$predict_fold(italy_task, "validation")
+
+get_obsdata <- function(fold, task) {
+  list(loss_dt = data.table(
+    fold_index = fold_index(),
+    index = validation(),
+    obs = validation(task$Y),
+    id = validation(task$id),
+    weights = validation(task$weights)
+  ))
+}
+
+loss_dt <- origami::cross_validate(get_obsdata, italy_task$folds, italy_task)$loss_dt
+loss_dt <- loss_dt[order(index, fold_index)]
+loss_dt <- cbind(loss_dt, preds=val_preds)
+loss_dt <- loss_dt[,list(preds=preds[which.max(fold_index)]),by=list(index)]
+italy_data[,index:=.I]
+italy_data$preds <- NULL
+italy_data <- merge(italy_data, loss_dt, by="index")
+
 saveRDS(italy_data, file = here("sandbox", "italy_results.rds"))
 
 # visualize
 italy_data <- readRDS(here("sandbox", "italy_results.rds"))
-p_italy_preds <- italy_data %>%
+p_italy_preds <- italy_data[days<=50] %>%
   ggplot(aes(x = days, y = log_cases)) +
     geom_point() +
     geom_line(aes(y = preds)) +
@@ -118,5 +141,7 @@ p_italy_preds <- italy_data %>%
           axis.text.x = element_text(angle = 20, colour = "black", size = 26),
           axis.text.y = element_text(colour = "black", size = 26)
          )
+
+print(p_italy_preds)
 ggsave(here("graphs", "italy_preds.pdf"), plot = p_italy_preds,
        width = 20, height = 16)
