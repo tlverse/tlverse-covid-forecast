@@ -32,6 +32,7 @@ params_default <- list(nthread = getOption("sl.cores.learners", 1))
 xgb_lrnrs <- apply(grid_params, MARGIN = 1, function(params_tune) {
   do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
 })
+
 mean_lrnr <- Lrnr_mean$new()
 glm_lrnr <- Lrnr_glm$new()
 ridge_lrnr <- Lrnr_glmnet$new(alpha = 0, nfolds = 3)
@@ -53,11 +54,7 @@ arima_strat_lrnr <- Lrnr_multiple_ts$new(learner = arima_lrnr)
 expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = expsmooth_lrnr)
 
 # library for Stack
-stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr, lasso_lrnr,
-                         enet_lrnr_reg25, enet_lrnr_reg50, enet_lrnr_reg75,
-                         ranger_lrnr_nt50, ranger_lrnr_nt100,
-                         ranger_lrnr_nt500, earth_lrnr, xgb_lrnrs, alan_lrnr,
-                         gts_lrnr, arima_strat_lrnr, expsmooth_strat_lrnr),
+stack_lib <- unlist(list(mean_lrnr, glm_lrnr, ridge_lrnr),
                     recursive = TRUE)
 
 # make stack for SL
@@ -85,7 +82,7 @@ sl_stack_run_forrest_run <- make_learner(Stack, screen_lasso_pipe)
 
 # simple covariate screening
 sl3_debug_mode()
-sl <- generate_learners(stack = sl_stack_run_forrest_run)
+sl <- generate_learners(stack = screen_lasso_pipe, metalearner_stratified = FALSE)
 data <- read_csv(here("Data", "training_processed.csv"))
 test_data <- read_csv(here("Data", "test_processed.csv"))
 setDT(data)
