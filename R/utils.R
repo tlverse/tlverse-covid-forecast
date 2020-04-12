@@ -22,7 +22,7 @@ make_sl_table <- function(sl_lrnr_fit,
   # check metalearner fits and collapse coefficients across regions
   coefs <- sapply(sl_lrnr_fit$fit_object$cv_meta_fit$fit_object, stats::coef)
   coefs_collapsed <- as.numeric(apply(coefs, 1, mean))
-  sl_lrnr_risks[, 2] <- coefs_collapsed
+  sl_lrnr_risks[, coefficients := c(coefs_collapsed, sum(coefs_collapsed))]
 
   # open file for writing table
   sink(here::here("tables", paste0(file_out, format_ext)))
