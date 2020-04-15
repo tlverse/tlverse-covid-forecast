@@ -69,7 +69,7 @@ alan_lrnr <- make_learner(Lrnr_alan_pois)
 gts_lrnr <- make_learner(Lrnr_gts)
 
 # TODO identify rank deficient covariates
-arima_lrnr <- make_learner(Lrnr_arima, covariates=c("case_days"))
+arima_lrnr <- make_learner(Lrnr_arima, covariates=c("days"))
 expsmooth_lrnr <- make_learner(Lrnr_expSmooth)
 arima_strat_lrnr <- Lrnr_multiple_ts$new(learner = arima_lrnr)
 expsmooth_strat_lrnr <- Lrnr_multiple_ts$new(learner = expsmooth_lrnr)
@@ -111,7 +111,7 @@ stack_lrnrs <- make_learner(Stack, stack_lib)
 #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                     #threshold = 1e-3)
 screener_lasso <- make_learner(Lrnr_screener_coefs, lasso_lrnr,
-                               threshold = 1e-4)
+                               threshold = 0)
 
 # pipelines
 #screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
@@ -138,7 +138,7 @@ italy_fit <- sl$train(italy_task)
 val_preds <- italy_fit$predict_fold(italy_task, "validation")
 
 lrnr_preds <- italy_fit$fit_object$cv_fit$base_predict()
-long_lrnr_names <- sprintf("Pipeline(Lrnr_screener_coefs_1e-04->Stack)_%s",long_lrnr_names)
+long_lrnr_names <- sprintf("Pipeline(Lrnr_screener_coefs_0->Stack)_%s",long_lrnr_names)
 colnames(lrnr_preds)<-short_lrnr_names[match(colnames(lrnr_preds), long_lrnr_names)]
 
 get_obsdata <- function(fold, task) {
@@ -164,6 +164,11 @@ long[,rse:=sqrt((obs-value)^2)]
 ggplot(long,aes(x=horizon,y=log(rse),color=variable))+
   geom_smooth()+theme_bw()
 
+italy_data[,index:=.I]
+italy_data$preds <- NULL
+# italy_data <- merge(italy_data, loss_dt, by="index")
+
+
 ggplot(long[variable=="SuperLearner"&horizon%in%c(1,7,14,30)],aes(x=index,y=value))+
   geom_line()+
   geom_point(data=italy_data, aes(y=log_cases))+
@@ -172,11 +177,6 @@ ggplot(long[variable=="exp smoothing (linear)"&horizon%in%c(1,7,14,30)],aes(x=in
   geom_line()+
   geom_point(data=italy_data, aes(y=log_cases))+
   facet_wrap(~horizon)
-
-loss_dt <- loss_dt[,list(preds=preds[which.max(fold_index)]),by=list(index)]
-italy_data[,index:=.I]
-italy_data$preds <- NULL
-italy_data <- merge(italy_data, loss_dt, by="index")
 
 saveRDS(italy_data, file = here("sandbox", "italy_results.rds"))
 
