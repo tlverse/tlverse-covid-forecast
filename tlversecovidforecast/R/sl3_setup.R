@@ -4,7 +4,7 @@
 
 covariate_list <- function() {
   c("days_quarantine", "quarantine", "days_restrictions",
-    "restrictions", "days_schools_national", "schools_national", 
+    "restrictions", "days_schools_national", "schools_national",
     "days_schools_localized", "schools_localized", "lat", "lon", "continent",
     "population", "area", "sars_cases", "sars_deaths", "sars_recovered",
     "subregion", "tests", "density", "median_age",
@@ -187,22 +187,22 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     ### screeners
     screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                    threshold = 1e-1)
-    screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
-                                        threshold = 1e-3)
+    #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
+                                        #threshold = 1e-3)
     # pipelines
     screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
-    screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex,
-                                           stack)
+    #screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex,
+                                           #stack)
 
     ### final stack
-    stack <- make_learner(Stack, screen_lasso_pipe, screen_lasso_flex_pipe)
+    stack <- make_learner(Stack, screen_lasso_pipe)
   }
 
   ### metalearner
   metalearner_competition <- make_learner(
-    Lrnr_solnp, metalearner_linear_bound,loss_squared_error
+    Lrnr_solnp, metalearner_linear_bound, loss_squared_error
   )
-  if(metalearner_stratified){
+  if (metalearner_stratified) {
     stratified_metalearner <- Lrnr_stratified$new(
       learner = metalearner_competition, variable_stratify = "continent"
     )
