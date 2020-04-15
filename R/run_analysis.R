@@ -10,10 +10,8 @@ library(sl3)
 reticulate::use_python(system("which python3"))
 
 # data.table threading vs. future (probably unnecessary)
-dt_cores <- as.integer(unname(round(0.2 * availableCores())))
-future_cores <- as.integer(unname(availableCores()) - dt_cores)
-setDTthreads(dt_cores)
-plan(multiprocess, workers = future_cores)
+setDTthreads(2)
+plan(multiprocess, workers = availableCores() - getDTthreads())
 
 # load helper package
 devtools::document(here("tlversecovidforecast"))
