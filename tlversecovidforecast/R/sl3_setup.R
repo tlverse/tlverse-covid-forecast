@@ -3,11 +3,11 @@
 #' @import origami
 
 covariate_list <- function() {
-  c("recoveries", "days_quarantine", "quarantine", "days_restrictions", 
+  c("days_quarantine", "quarantine", "days_restrictions", 
     "restrictions", "days_schools_national", "schools_national", 
     "days_schools_localized", "schools_localized", "lat", "lon", "continent", 
     "population", "area", "sars_cases", "sars_deaths", "sars_recovered", 
-    "delta_recoveries", "subregion", "tests", "density", "median_age", 
+    "subregion", "tests", "density", "median_age", 
     "urbanpop", "hospital_bed", "smokers", "sex0", "sex14", "sex25", "sex54", 
     "sex64", "sex65plus", "sex_ratio", "lung_disease", "femalelung", "malelung", 
     "obese", "male_obese", "fem_obese", "overweight", "male_overweight", 
