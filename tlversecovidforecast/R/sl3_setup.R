@@ -129,13 +129,14 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     grid_params <- list(
       max_depth = c(3, 8),
       eta = c(0.05, 0.2),
-      nrounds = c(50, 100)
+      nrounds = c(50)
     )
     grid <- expand.grid(grid_params, KEEP.OUT.ATTRS = FALSE)
     params_default <- list(nthread = getOption("sl.cores.learners", 1))
     xgb_learners <- apply(grid, MARGIN = 1, function(params_tune) {
       do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
     })
+    lrnr_mean <- make_learner(Lrnr_mean)
     lrnr_lasso <- Lrnr_glmnet$new(alpha = 1, nfolds = 3)
     lrnr_ridge <- Lrnr_glmnet$new(alpha = 0, nfolds = 3)
     enet_lrnr_reg25 <- Lrnr_glmnet$new(alpha = 0.25, nfolds = 3)
@@ -161,17 +162,17 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
     lrnr_lstm10_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm10)
     lrnr_lstm1_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm1)
-
     ### stack of base learners
     stack <- make_learner(
       Stack, 
-      unlist(list(xgb_learners,
+      unlist(list(lrnr_mean,
+                  xgb_learners,
                   lrnr_glm,
                   lrnr_lasso,
                   lrnr_ridge,
-                  enet_lrnr_reg25,
-                  enet_lrnr_reg50,
-                  enet_lrnr_reg75,
+                  # enet_lrnr_reg25,
+                  # enet_lrnr_reg50,
+                  # enet_lrnr_reg75,
                   lrnr_ranger,
                   lrnr_earth,
                   #lrnr_polspline,
@@ -186,7 +187,7 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
 
     ### screeners
     screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
-                                   threshold = 1e-1)
+                                   threshold = 1e-2)
     #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
                                         #threshold = 1e-3)
     # pipelines
@@ -212,4 +213,11 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     sl <- make_learner(Lrnr_sl, stack, metalearner_competition)
   }
   return(sl)
+}
+
+strat_metalearner_coefs <- function(fit){
+  # check metalearner fits
+  coefs <- sapply(fit$fit_object$cv_meta_fit$fit_object,coef)
+  mean_coefs <- unlist(rowMeans(coefs))
+  return(mean_coefs)  
 }
