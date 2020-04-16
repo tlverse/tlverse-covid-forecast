@@ -22,20 +22,21 @@ reticulate::use_python(system("which python3"))
 devtools::document(here("tlversecovidforecast"))
 devtools::load_all(here("tlversecovidforecast"))
 
-# make SL learners and read in data
+# make SL learners and read in data, 
+# both fread and read_csv switch of facs to chars, read.csv avoids this
 sl3_debug_mode()
 sl <- generate_learners()
-data <- read_csv(here("Data", "training_processed.csv"))
-test_data <- read_csv(here("Data", "test_processed.csv"))
+data <- read.csv(here("Data", "training_processed.csv"))
+test_data <- read.csv(here("Data", "test_processed.csv"))
 setDT(data)
 setDT(test_data)
-data <- data[!(days%in%unique(test_data$days))]
+data <- data[!(days %in% unique(test_data$days))]
 
 # generate case task and training predictions
 log_cases_task <- generate_task(data, "log_cases", batch = batch_size)
 cases_fit <- sl$train(log_cases_task)
 cv_risk_table <- cases_fit$cv_risk(loss_squared_error)
-cv_risk_table$coefficients <- c(strat_metalearner_coefs(cases_fit),NA)
+cv_risk_table$coefficients <- c(strat_metalearner_coefs(cases_fit), NA)
 print(cv_risk_table)
 
 # for testing data, generate case task and predictions
