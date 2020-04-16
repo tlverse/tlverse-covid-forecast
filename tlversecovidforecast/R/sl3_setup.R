@@ -144,8 +144,6 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     enet_lrnr_reg75 <- Lrnr_glmnet$new(alpha = 0.75, nfolds = 3)
     lrnr_glm <- Lrnr_glm_fast$new()
     lrnr_ranger <- make_learner(Lrnr_ranger)
-    lrnr_earth <- make_learner(Lrnr_earth)
-    lrnr_polspline <- make_learner(Lrnr_polspline)
 
     # time series learners
     lrnr_alan <- make_learner(Lrnr_alan_pois)
@@ -156,10 +154,21 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
                                 early_stop = TRUE)
     lrnr_lstm1 <- make_learner(Lrnr_lstm, epochs = 500, batch_size = 1,
                                early_stop = TRUE)
-
+    lrnr_expSmooth_alt_aic <- make_learner(Lrnr_expSmooth, nmse = 30, 
+                                           opt.crit = "mse", ic = "aic", 
+                                           allow.multiplicative.trend = TRUE)
+    lrnr_expSmooth_alt_bic <- make_learner(Lrnr_expSmooth, nmse = 30, 
+                                           opt.crit = "mse", ic = "bic", 
+                                           allow.multiplicative.trend = TRUE)
     # do one by one for now
     lrnr_arima_strat <- Lrnr_multiple_ts$new(learner = lrnr_arima)
     lrnr_expSmooth_strat <- Lrnr_multiple_ts$new(learner = lrnr_expSmooth)
+    lrnr_expSmooth_alt_aic_strat <- Lrnr_multiple_ts$new(
+      learner = lrnr_expSmooth_alt_aic
+      )
+    lrnr_expSmooth_alt_bic_strat <- Lrnr_multiple_ts$new(
+      learner = lrnr_expSmooth_alt_bic
+    )
     lrnr_lstm10_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm10)
     lrnr_lstm1_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm1)
     ### stack of base learners
@@ -174,13 +183,13 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
                   # enet_lrnr_reg50,
                   # enet_lrnr_reg75,
                   lrnr_ranger,
-                  lrnr_earth,
-                  #lrnr_polspline,
                   lrnr_gts,
                   lrnr_alan,
                   lrnr_arima_strat,
                   #lrnr_lstm10_strat,
                   #lrnr_lstm1_strat,
+                  lrnr_expSmooth_alt_aic_strat,
+                  lrnr_expSmooth_alt_bic_strat,
                   lrnr_expSmooth_strat),
              recursive = TRUE)
       )
