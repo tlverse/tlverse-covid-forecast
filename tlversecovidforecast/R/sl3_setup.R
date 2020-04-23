@@ -130,12 +130,14 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
       max_depth = c(3, 8),
       eta = c(0.05, 0.2),
       nrounds = c(50)
-    )
+    ) 
     grid <- expand.grid(grid_params, KEEP.OUT.ATTRS = FALSE)
     params_default <- list(nthread = getOption("sl.cores.learners", 1))
     xgb_learners <- apply(grid, MARGIN = 1, function(params_tune) {
       do.call(Lrnr_xgboost$new, c(params_default, as.list(params_tune)))
     })
+    
+    names(xgb_learners) <- sprintf("xgboost_%d",seq_along(xgb_learners))
     lrnr_mean <- make_learner(Lrnr_mean)
     lrnr_lasso <- Lrnr_glmnet$new(alpha = 1, nfolds = 3)
     lrnr_ridge <- Lrnr_glmnet$new(alpha = 0, nfolds = 3)
@@ -169,28 +171,37 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
     lrnr_expSmooth_alt_bic_strat <- Lrnr_multiple_ts$new(
       learner = lrnr_expSmooth_alt_bic
     )
+
+    
+    exp_trans <- function(x){exp(x)-1}
+    exp_trans_inv <- function(x){log(x+1)}
+    lin_expsmooth_strat_lrnr <- make_learner(Lrnr_transform_outcome, exp_trans, exp_trans_inv, lrnr_expSmooth_strat)
+    lin_arima_strat_lrnr <- make_learner(Lrnr_transform_outcome, exp_trans, exp_trans_inv, lrnr_arima_strat)
+    #
     lrnr_lstm10_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm10)
     lrnr_lstm1_strat <- Lrnr_multiple_ts$new(learner = lrnr_lstm1)
     ### stack of base learners
     stack <- make_learner(
       Stack, 
-      unlist(list(lrnr_mean,
+      unlist(list(mean=lrnr_mean,
                   xgb_learners,
-                  lrnr_glm,
-                  lrnr_lasso,
-                  lrnr_ridge,
+                  glm=lrnr_glm,
+                  lasso=lrnr_lasso,
+                  ridge=lrnr_ridge,
                   # enet_lrnr_reg25,
                   # enet_lrnr_reg50,
                   # enet_lrnr_reg75,
-                  lrnr_ranger,
-                  lrnr_gts,
-                  lrnr_alan,
-                  lrnr_arima_strat,
+                  ranger=lrnr_ranger,
+                  gts=lrnr_gts,
+                  alan_poisson=lrnr_alan,
+                  arima=lrnr_arima_strat,
                   #lrnr_lstm10_strat,
                   #lrnr_lstm1_strat,
-                  lrnr_expSmooth_alt_aic_strat,
-                  lrnr_expSmooth_alt_bic_strat,
-                  lrnr_expSmooth_strat),
+                  # lrnr_expSmooth_alt_aic_strat,
+                  # lrnr_expSmooth_alt_bic_strat,
+                  expSmooth=lrnr_expSmooth_strat,
+                  expSmooth_linear=lin_expsmooth_strat_lrnr,
+                  arima_linear=lin_arima_strat_lrnr),
              recursive = TRUE)
       )
 
