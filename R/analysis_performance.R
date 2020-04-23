@@ -31,7 +31,7 @@ data <- read.csv(here("Data", "training_processed.csv"))
 setDT(data)
 
 # generate case task and training predictions
-log_cases_task <- generate_task(data, "log_cases", batch = batch_size)
+log_cases_task <- generate_task(data, "log_cases", batch = batch_size, include_tv=FALSE)
 cases_fit <- sl$train(log_cases_task)
 
 cv_risk_table <- cases_fit$cv_risk(loss_squared_error)
@@ -146,3 +146,7 @@ ggplot(california_preds,
   geom_vline(linetype="dashed",aes(xintercept=fold_date))+
   scale_color_discrete("Model Fit Date")+facet_wrap(~fold_date)
 
+stack_fit <- cases_fit$fit_object$full_fit$fit_object$learner_fits[[1]]$fit_object$learner_fits[[1]]$fit_object$learner_fits[[2]]
+glm_fit <- stack_fit$fit_object$learner_fits[["glm"]]
+glm_coefs <- coef(glm_fit)
+glm_coefs[order(abs(glm_coefs), decreasing = TRUE)]

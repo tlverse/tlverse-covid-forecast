@@ -2,14 +2,11 @@
 #' @import tidyverse
 #' @import origami
 
-covariate_list <- function() {
-  c("days_quarantine", "quarantine", "days_restrictions",
-    "restrictions", "days_schools_national", "schools_national",
-    "days_schools_localized", "schools_localized", "lat", "lon", "continent",
+covariate_list <- function(include_tv) {
+  covariates <-  c("lat", "lon", "continent",
     "population", "area", "sars_cases", "sars_deaths", "sars_recovered",
     "subregion", "tests", "density", "median_age",
-    "urbanpop", "hospital_bed", "smokers", "sex0", "sex14", "sex25", "sex54",
-    "sex64", "sex65plus", "sex_ratio", "lung_disease", "femalelung", "malelung",
+    "urbanpop", "hospital_bed", "smokers", "lung_disease", "femalelung", "malelung",
     "obese", "male_obese", "fem_obese", "overweight", "male_overweight",
     "fem_overweight", "air_year", "air_passengers", "econ_worldrank",
     "econ_regionrank", "econ_2019score", "econ_propertyrights", "econ_judical",
@@ -56,12 +53,11 @@ covariate_list <- function() {
     "delta_pop65above_year", "delta_pop65above_percent",
     "delta_prisoncount_year", "delta_prison_count", "delta_prisonrate_year",
     "delta_prison_rate", "delta_rail_year", "delta_rail_millionpassengerkm",
-    "days", "case_days", "case10_days", "case100_days", "max_cases",
-    "log_recoveries", "log_population", "log_area", "log_sars_cases",
+    "days", "case_days", "case10_days", "case100_days",
+    "log_population", "log_area", "log_sars_cases",
     "log_sars_deaths", "log_sars_recovered", "log_tests", "log_density",
     "log_median_age", "log_urbanpop", "log_hospital_bed", "log_smokers",
-    "log_sex0", "log_sex14", "log_sex25", "log_sex54", "log_sex64",
-    "log_sex65plus", "log_sex_ratio", "log_lung_disease", "log_femalelung",
+    "log_lung_disease", "log_femalelung",
     "log_malelung", "log_obese", "log_male_obese", "log_fem_obese",
     "log_overweight", "log_male_overweight", "log_fem_overweight",
     "log_air_passengers", "log_econ_2019score", "log_econ_propertyrights",
@@ -81,10 +77,24 @@ covariate_list <- function() {
     "log_pollution_2017", "log_pop65above_percent", "log_prison_count",
     "log_prison_rate", "log_rail_millionpassengerkm", "log_max_cases",
     "weekday")
+  
+  tv_covariates <- c("days_quarantine", "quarantine", "days_restrictions",
+                     "restrictions", "days_schools_national", "schools_national",
+                     "days_schools_localized", "schools_localized","log_recoveries",
+                     "log_sex0", "log_sex14", "log_sex25", "log_sex54", "log_sex64",
+                     "log_sex65plus", "log_sex_ratio", "sex0", "sex14", "sex25", "sex54",
+                     "sex64", "sex65plus", "sex_ratio")
+  
+  
+  if(include_tv){
+    covariates <- c(covariates, tv_covariates)
+  }
+  
+  return(covariates)
 }
 
 generate_task <- function(data, outcome, first_window = 20, time = data$days,
-                          t = max(data$days), batch = 1) {
+                          t = max(data$days), batch = 1, include_tv=TRUE) {
 
   folds <- origami::make_folds(data,
     t = t, 
@@ -100,7 +110,7 @@ generate_task <- function(data, outcome, first_window = 20, time = data$days,
   # TODO: consider imputation of covariates, drop_missing_outcome
   nodes <- list(
     outcome = outcome,
-    covariates = covariate_list(),
+    covariates = covariate_list(include_tv),
     strata_vars = c("continent"),
     time = "days",
     id = "region"
