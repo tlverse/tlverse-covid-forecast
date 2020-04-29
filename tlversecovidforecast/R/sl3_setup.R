@@ -113,7 +113,8 @@ generate_task <- function(data, outcome, first_window = 20, time = data$days,
     covariates = covariate_list(include_tv),
     strata_vars = c("continent"),
     time = "days",
-    id = "region"
+    id = "region",
+    population_size = "population"
   )
 
   task <- make_sl3_Task(data,
