@@ -171,7 +171,7 @@ setup_data <- function() {
              "init_restrict_entertain","init_restrict_dining","tenth_case_date",
              "init_restrict_school","init_restrict_gather500","first_death_date",
              "init_restrict_gather50", "init_restrict_stayhome","tenth_death_date",
-             "hundreth_case_date", "hundreth_death_date", "date")
+             "hundreth_case_date", "hundreth_death_date")
   outcomes <- c("cases", "deaths")
   geo_names <- c("State", "CountyName", "StateName", "CensusRegionName", 
                  "CensusDivisionName")
@@ -182,13 +182,15 @@ setup_data <- function() {
     processedX <- process_data(processedX, "delta_")
   }
   
-  final <- data.table(data[,c(dates,outcomes,geo_names),with=FALSE],processedX)
+  data <- suppressMessages(data.table(full_join(
+    data[,c("countyFIPS","date", dates, outcomes, geo_names), with = FALSE], 
+    processedX)))
 
   ############################### log features #################################
   print("5/6: Adding logged continuous features")
   
-  final[, log_cases := log(cases + 1)]
-  final[, log_deaths := log(deaths + 1)]
+  data[, log_cases := log(cases + 1)]
+  data[, log_deaths := log(deaths + 1)]
   
   to_log <- c(
     "deaths_lag14", "cases_lag14", "deaths_lag15total", "cases_lag15total", 
