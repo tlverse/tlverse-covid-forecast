@@ -26,8 +26,8 @@ devtools::load_all(here("tlversecovidforecast"))
 # both fread and read_csv switch of facs to chars, read.csv avoids this
 sl3_debug_mode()
 sl <- generate_learners()
-data <- read.csv(here("Data", "training_processed.csv"))
-test_data <- read.csv(here("Data", "test_processed.csv"))
+data <- read.csv(here("Data", "training.csv"))
+test_data <- read.csv(here("Data", "test.csv"))
 setDT(data)
 setDT(test_data)
 data <- data[!(days %in% unique(test_data$days))]
@@ -45,16 +45,15 @@ test_preds <- cases_fit$predict(test_log_cases_task)
 test_cases_preds <- exp(test_preds) - 1
 
 # generate fatalities predictions
-log_fatalities_task <- generate_task(data, "log_fatalities", batch = batch_size)
+log_fatalities_task <- generate_task(data, "log_deaths", batch = batch_size)
 fatalities_fit <- sl$train(log_fatalities_task)
-test_log_fatalities_task <- generate_task(test_data, "log_fatalities")
+test_log_fatalities_task <- generate_task(test_data, "log_deaths")
 test_preds <- fatalities_fit$predict(test_log_fatalities_task)
 test_fatalities_preds <- exp(test_preds) - 1
 
-# generate submission
-ex_submission <- fread(here("Data", "week2", "submission.csv"))
-submission <- as.data.table(list(test_data$forecastid, test_cases_preds,
-                                 test_fatalities_preds))
-setnames(submission, names(ex_submission))
-submission <- submission[order(ForecastId)]
-write_csv(submission, here("Data", "tlverse_submission.csv"))
+# generate tabular output
+tbl <- as.data.table(list(test_data$countyFIPS, test_data$date, test_cases_preds,
+                          test_fatalities_preds))
+setnames(tbl, c("countyFIPS", "date", "cases_preds", "deaths_preds"))
+tbl_ordered <- setorder(tbl, "countyFIPS", "date")
+write_csv(tbl_ordered, here("Data", "predictions.csv"))
