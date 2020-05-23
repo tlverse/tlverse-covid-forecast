@@ -6,3 +6,4 @@
 * Data for our analysis is stored locally in the `Data` directory.
 * The `R` package `tlversecovidforecast` contains utilities used for running
   our machine learning-based forecasting analysis and cleaning the data.
+
