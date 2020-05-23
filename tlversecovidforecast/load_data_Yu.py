@@ -108,4 +108,4 @@ if __name__ == '__main__':
           [k for k in df.keys() if '#Deaths' in k][-1],
           [k for k in df.keys() if '#Cases' in k][-1])
     timeStr = time.strftime("%Y%m%d")
-    df.to_csv("merged_data/merged_data_" + timeStr + ".csv", index=False)
+    df.to_csv("../Data/Yu_merged_data/merged_data_" + timeStr + ".csv", index=False)
