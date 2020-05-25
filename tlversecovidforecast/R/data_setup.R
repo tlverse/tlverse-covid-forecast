@@ -1,4 +1,3 @@
-# TODO: edit python script to read data from Yu group url, save merged file 
 # TODO: handle cancelling of restrictions
 # TODO: handle list_cols, in particular "neighbor_deaths" & "neighbor_cases" 
 
@@ -23,15 +22,15 @@
 #
 setup_data <- function() {
   
+  files <- list.files(here("Data", "Yu_merged_data"))
+  file_dates <- as.Date(gsub("merged_data_|.csv", "", files), format = "%Y%m%d")
+
   ############################# preprocess #####################################
-  print("1/6: Loading Yu group data")
+  print(paste0("1/7: Loading most recent update, from ", max(file_dates)))
   
   wide_data <- suppressMessages(data.table(
-    read_csv(here::here("Data", "Yu_merged_data", "merged_data_20200507-143721.csv"),
+    read_csv(here("Data", "Yu_merged_data", files[which.max(file_dates)]), 
              guess_max = 5000)))
-  # wide_data <- suppressMessages(data.table(
-  #   read_csv(here::here("Data", "Yu_merged_data", "merged_data.csv"), 
-  #            guess_max = 5000)))
   
   if(length(unique(wide_data$countyFIPS)) != nrow(wide_data)){
     stop("Error: Number of unique counties does not equal number of rows in the data")
@@ -76,7 +75,7 @@ setup_data <- function() {
   training <- suppressMessages(data.table(full_join(long_deaths, long_cases)))
 
   ##################### create 14-day ahead test data ##########################
-  print("2/6: Creating 14-day ahead test data")
+  print("2/7: Creating 14-day ahead test data")
   
   # add covs in training
   covs <- distinct(training[,-c("date", "deaths", "cases"), with = FALSE])
@@ -99,7 +98,7 @@ setup_data <- function() {
   all <- setorder(all, "countyFIPS", "date")
   
   ################################ add features ################################
-  print("3/6: Adding features")
+  print("3/7: Adding time-varying features based on restrictions, cases, and deaths")
   
   all$weekday <- as.factor(weekdays(all$date))
   
@@ -164,7 +163,7 @@ setup_data <- function() {
   data[, restrict_travel_days := case_days_or_zero(date, init_restrict_travel)]
 
   ################################## imputation ################################
-  print("4/6: Imputing covariates, stratified by state")
+  print("4/7: Imputing covariates, stratified by state")
   
   # sl3-style imputation by state
   dates <- c("init_restrict_travel","init_restrict_federal","first_case_date",
@@ -178,7 +177,7 @@ setup_data <- function() {
   X <- data[,-c(dates, outcomes, geo_names), with = FALSE]
   processedX <- process_data(X, strata = "STATEFP")
   if(sum(is.na(processedX)) > 0){
-    print("NA remain after stratified imputation, imputing with all data")
+    print("NA remain after state-wise imputation, imputing remaining NA with all data")
     processedX <- process_data(processedX, "delta_")
   }
   
@@ -187,7 +186,7 @@ setup_data <- function() {
     processedX)))
 
   ############################### log features #################################
-  print("5/6: Adding logged continuous features")
+  print("5/7: Adding logged continuous features")
   
   data[, log_cases := log(cases + 1)]
   data[, log_deaths := log(deaths + 1)]
@@ -216,20 +215,20 @@ setup_data <- function() {
   logged <- data[, lapply(.SD, function(x) log(x + 1)), .SDcols = to_log]
   log_names <- sprintf("log_%s", to_log)
   setnames(logged, log_names)
-  all_final <- data.table(cbind(data, logged))
+  all <- data.table(cbind(data, logged))
 
   ############################## final save ####################################
-  print("6/6: Final save")
   
-  all_final <- setorder(all_final, "countyFIPS", "date")
-  training_final <- all_final[!is.na(all_final$cases), ]
-  test_final <- all_final[is.na(all_final$cases), ]
+  all <- setorder(all, "countyFIPS", "date")
+  training <- all[!is.na(all$cases), ]
+  test <- all[is.na(all$cases), ]
   
-  if((nrow_training_data != nrow(training_final)) | (nrow_test_data != nrow(test_final))){
+  if((nrow_training_data != nrow(training)) | (nrow_test_data != nrow(test))){
     stop("Error: Final training/test nrows != original training/test nrows")
   }
   
-  #write.csv(all_final, file = here("Data", "all.csv"), row.names = FALSE)
-  write.csv(training_final, file = here("Data", "training.csv"), row.names = FALSE)
-  write.csv(test_final, file = here("Data", "test.csv"), row.names = FALSE)
+  print("6/7: Saving training data to Data/training.Rdata")
+  save(training, file = here("Data", "training.Rdata"), compress = TRUE)
+  print("7/7: Saving test data to Data/test.Rdata")
+  save(test, file = here("Data", "test.Rdata"), compress = TRUE)
 }
