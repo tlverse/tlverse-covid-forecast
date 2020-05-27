@@ -26,8 +26,10 @@ devtools::load_all(here("tlversecovidforecast"))
 # both fread and read_csv switch of facs to chars, read.csv avoids this
 sl3_debug_mode()
 sl <- generate_learners()
-data <- load(here("Data", "training.Rdata"))
-test_data <- load(here("Data", "test.Rdata"))
+load(here("Data", "training.Rdata"))
+data <- training
+load(here("Data", "test.Rdata"))
+test_data <- test
 setDT(data)
 setDT(test_data)
 data <- data[!(days %in% unique(test_data$days))]
