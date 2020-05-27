@@ -220,6 +220,8 @@ setup_data <- function() {
   ############################## final save ####################################
   
   all <- setorder(all, "countyFIPS", "date")
+  all$StateName <- as.factor(all$StateName)
+  all$countyFIPS <- as.factor(all$countyFIPS)
   training <- all[!is.na(all$cases), ]
   test <- all[is.na(all$cases), ]
   
