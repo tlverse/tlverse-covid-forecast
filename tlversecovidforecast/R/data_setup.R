@@ -102,18 +102,18 @@ setup_data <- function() {
   
   all$weekday <- as.factor(weekdays(all$date))
   
-  all_lags <- all %>%
+  Ylags <- all %>%
     group_by(countyFIPS) %>%
     mutate(deaths_lag14 = lag(deaths, 14, default = 0)) %>%
     mutate(cases_lag14 = lag(cases, 14, default = 0)) %>%
-    mutate(deaths_lag14 = lag(deaths, 15, default = 0)) %>%
-    mutate(cases_lag14 = lag(cases, 15, default = 0)) %>%
-    mutate(deaths_lag14 = lag(deaths, 16, default = 0)) %>%
-    mutate(cases_lag14 = lag(cases, 16, default = 0)) %>%
-    mutate(deaths_lag15total = lag(cumsum(deaths), 17, default = 0)) %>%
-    mutate(cases_lag15total = lag(cumsum(cases), 17, default = 0))
+    mutate(deaths_lag15 = lag(deaths, 15, default = 0)) %>%
+    mutate(cases_lag15 = lag(cases, 15, default = 0)) %>%
+    mutate(deaths_lag16 = lag(deaths, 16, default = 0)) %>%
+    mutate(cases_lag16 = lag(cases, 16, default = 0)) %>%
+    mutate(deaths_lag17total = lag(cumsum(deaths), 17, default = 0)) %>%
+    mutate(cases_lag17total = lag(cumsum(cases), 17, default = 0))
   
-  all_restrictions <- all_lags %>%
+  restrictions <- Ylags %>%
     group_by(countyFIPS) %>%
     mutate(restrict_stayhome = ifelse((is.na(init_restrict_stayhome) | 
                                       (date <= init_restrict_stayhome)), 0, 1)) %>%
@@ -132,7 +132,13 @@ setup_data <- function() {
     mutate(restrict_travel = ifelse((is.na(init_restrict_travel) | 
                                     (date <= init_restrict_travel)), 0, 1)) 
   
-  data <- data.table(all_restrictions)
+  data <- data.table(restrictions)
+  res1 <- c("restrict_stayhome", "restrict_gather50", "restrict_gather500", 
+            "restrict_school", "restrict_dining", "restrict_entertain",
+            "restrict_federal", "restrict_travel")
+  restrict_names <- paste0(res1, "_lag", 14)
+  data <- data[, (restrict_names) := shift(.SD, n=14), by=countyFIPS, .SDcols=res1]
+  
   
   case_days_or_zero <- function(date, first_date) {
     case_days <- as.numeric(difftime(date, first_date, unit = "days"))
@@ -161,6 +167,15 @@ setup_data <- function() {
   data[, restrict_entertain_days := case_days_or_zero(date, init_restrict_entertain)]
   data[, restrict_federal_days := case_days_or_zero(date, init_restrict_federal)]
   data[, restrict_travel_days := case_days_or_zero(date, init_restrict_travel)]
+
+  res2 <- c("restrict_stayhome_days", "restrict_gather50_days", "restrict_gather500_days", 
+            "restrict_school_days", "restrict_dining_days", "restrict_entertain_days",
+            "restrict_federal_days", "restrict_travel_days", "case_days", 
+            "case10_days", "case100_days", "death_days", "death10_days", 
+            "death100_days")
+  restrict_names <- paste0(res2, "_lag", 14)
+  data <- data[, (restrict_names) := shift(.SD, n=14), by=countyFIPS, 
+               .SDcols=res2]
 
   ################################## imputation ################################
   print("4/7: Imputing covariates, stratified by state")
@@ -192,7 +207,8 @@ setup_data <- function() {
   data[, log_deaths := log(deaths + 1)]
   
   to_log <- c(
-    "deaths_lag14", "cases_lag14", "deaths_lag15total", "cases_lag15total", 
+    "deaths_lag14", "cases_lag14", "deaths_lag15", "cases_lag15", 
+    "deaths_lag16", "cases_lag16","deaths_lag17total", "cases_lag17total", 
     "Rural-UrbanContinuumCode2013", "PopulationEstimate2018", "PopTotalMale2017", 
     "PopTotalFemale2017", "FracMale2017", "PopulationEstimate65+2017", 
     "PopulationDensityperSqMile2010", "CensusPopulation2010", "MedianAge2010", 

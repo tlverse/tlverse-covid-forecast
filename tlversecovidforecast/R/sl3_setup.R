@@ -72,20 +72,17 @@ covariate_list <- function(include_tv) {
     
   
   tv_covariates <- c(
-    "weekday", "deaths_lag14", "cases_lag14", "deaths_lag15total", 
-    "cases_lag15total", "restrict_stayhome", "restrict_gather50", 
-    "restrict_gather500", "restrict_school", "restrict_dining", "restrict_entertain", 
-    "restrict_federal", "restrict_travel", "case_days", "case10_days", 
-    "case100_days", "death_days", "death10_days", "death100_days", 
-    "restrict_stayhome_days", "restrict_gather50_days", "restrict_gather500_days", 
-    "restrict_school_days", "restrict_dining_days", "restrict_entertain_days", 
-    "restrict_federal_days", "restrict_travel_days", "log_deaths_lag14", 
-    "log_cases_lag14", "log_deaths_lag15total", "log_cases_lag15total",
-    "case_days", "case10_days", "case100_days", "death_days", "death10_days", 
-    "death100_days", "log_deaths_lag14", "log_cases_lag14", 
-    "log_deaths_lag15total", "log_cases_lag15total"
-  )
-  
+    "weekday", "deaths_lag14", "cases_lag14", "deaths_lag15", "cases_lag15", 
+    "deaths_lag16", "cases_lag16","deaths_lag17total", "cases_lag17total",  
+    "restrict_stayhome_lag14", "restrict_gather50_lag14", "restrict_gather500_lag14", 
+    "restrict_school_lag14", "restrict_dining_lag14", "restrict_entertain_lag14", 
+    "restrict_federal_lag14", "restrict_travel_lag14", "restrict_stayhome_days_lag14", 
+    "restrict_gather50_days_lag14", "restrict_gather500_days_lag14", "restrict_school_days_lag14", 
+    "restrict_dining_days_lag14", "restrict_entertain_days_lag14", "restrict_federal_days_lag14", 
+    "restrict_travel_days_lag14", "log_deaths_lag14", "log_cases_lag14", "log_deaths_lag15", 
+    "log_cases_lag15", "log_deaths_lag16", "log_cases_lag16", "log_deaths_lag17total", 
+    "log_cases_lag17total", "case_days_lag14", "case10_days_lag14", "case100_days_lag14", 
+    "death_days_lag14", "death10_days_lag14", "death100_days_lag14")
   
   if(include_tv){
     covariates <- c(covariates, tv_covariates)
