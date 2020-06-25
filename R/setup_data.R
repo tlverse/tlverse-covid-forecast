@@ -20,18 +20,14 @@
 #' @import dplyr
 #' @import tidyr
 #
-setup_data <- function() {
-  
-  files <- list.files(here("Data", "Yu_merged_data"))
-  file_dates <- as.Date(gsub("merged_data_|.csv", "", files), format = "%Y%m%d")
+setup_data <- function(data_path = "data") {
 
   ############################# preprocess #####################################
-  print(paste0("1/7: Loading most recent update, from ", max(file_dates)))
   
-  wide_data <- suppressMessages(data.table(
-    read_csv(here("Data", "Yu_merged_data", files[which.max(file_dates)]), 
-             guess_max = 5000)))
+  yu_path <- file.path(data_path, "yu_merged_data.csv")
   
+  print(paste0("1/7: Loading yu data from ",yu_path))
+  wide_data <- fread(yu_path)
   if(length(unique(wide_data$countyFIPS)) != nrow(wide_data)){
     stop("Error: Number of unique counties does not equal number of rows in the data")
   }
@@ -74,6 +70,7 @@ setup_data <- function() {
   # merge
   training <- suppressMessages(data.table(full_join(long_deaths, long_cases)))
 
+ 
   ##################### create 14-day ahead test data ##########################
   print("2/7: Creating 14-day ahead test data")
   
@@ -241,12 +238,13 @@ setup_data <- function() {
   training <- all[!is.na(all$cases), ]
   test <- all[is.na(all$cases), ]
   
+
   if((nrow_training_data != nrow(training)) | (nrow_test_data != nrow(test))){
     stop("Error: Final training/test nrows != original training/test nrows")
   }
   
   print("6/7: Saving training data to Data/training.Rdata")
-  save(training, file = here("Data", "training.Rdata"), compress = TRUE)
+  save(training, file = file.path(data_path, "training.Rdata"), compress = TRUE)
   print("7/7: Saving test data to Data/test.Rdata")
-  save(test, file = here("Data", "test.Rdata"), compress = TRUE)
+  save(test, file = file.path(data_path, "test.Rdata"), compress = TRUE)
 }

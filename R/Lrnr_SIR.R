@@ -23,7 +23,6 @@
 #'   \item{\code{...}}{Parameters passed to \code{\link[stats]{glm}}.}
 #' }
 #'
-#' @template common_parameters
 #
 Lrnr_SIR <- R6Class(
   classname = "Lrnr_SIR", inherit = Lrnr_base,

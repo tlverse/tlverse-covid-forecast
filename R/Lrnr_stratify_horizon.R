@@ -24,7 +24,6 @@
 #'   \item{\code{...}}{Not currently used.}
 #' }
 #'
-#' @template common_parameters
 #
 Lrnr_stratify_horizon <- R6Class(
   classname = "Lrnr_stratify_horizon",

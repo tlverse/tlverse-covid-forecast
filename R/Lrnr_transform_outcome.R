@@ -24,7 +24,6 @@
 #'   \item{\code{...}}{Not currently used.}
 #' }
 #'
-#' @template common_parameters
 #
 Lrnr_transform_outcome <- R6Class(
   classname = "Lrnr_transform_outcome",
@@ -35,6 +34,14 @@ Lrnr_transform_outcome <- R6Class(
       params <- args_to_list()
       super$initialize(params = params, ...)
       private$.name = sprintf("%s_transformed", learner$name)
+    },
+    predict_fold = function(task = NULL, fold_number = "validation") {
+      trans_task <- private$.make_trans_task(task)
+      preds <- self$fit_object$learner$predict_fold(trans_task, fold_number)
+      trans_preds <- self$params$inverse_transform(preds)
+      
+      return(trans_preds)
+      
     }
   ),
   private = list(
@@ -50,9 +57,14 @@ Lrnr_transform_outcome <- R6Class(
       
       return(trans_task)
     },
-    .train = function(task) {
-      trans_task <- private$.make_trans_task(task)
-      fit <- self$params$learner$train(trans_task)
+    .train_sublearners = function(task){
+      mtt <- private$.make_trans_task
+      delayed_trans_task <- delayed::delayed_fun(mtt)(task)
+      delayed_fit <- sl3::delayed_learner_train(self$params$learner,delayed_trans_task)
+      return(delayed_fit)
+    },
+    .train = function(task, sublearners) {
+      fit <- sublearners
       
       fit_object <- self$params
       fit_object$learner <- fit
@@ -68,6 +80,7 @@ Lrnr_transform_outcome <- R6Class(
       return(trans_preds)
       
     },
+    
     .name = "transform"
   )
 )
