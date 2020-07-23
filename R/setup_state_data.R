@@ -43,6 +43,12 @@ setup_state_data <- function(data_path = "data") {
   dates <- c("stay at home", ">50 gatherings", ">500 gatherings", 
              "public schools", "restaurant dine-in", "entertainment/gym", 
              "federal guidelines", "foreign travel ban")
+  
+  
+  # TODO: incorporate
+  rollback_cols <- c("stay at home rollback", ">50 gatherings rollback", ">500 gatherings rollback", 
+                      "restaurant dine-in rollback", "entertainment/gym rollback")
+  
   date_data <- wide_data[, lapply(.SD, function(x) as.Date(x,origin="0-12-30")),
                          .SDcols = dates]
   colnames(date_data) <- c(
@@ -60,29 +66,31 @@ setup_state_data <- function(data_path = "data") {
   wide_data <- cbind(wide_data[,-c(list_cols, to_rm, dates), with = FALSE],
                      date_data)
   
+  write.csv(t(as.matrix(wide_data[sample(nrow(wide_data),10),])),"data/column_names.csv")
   ########################## create long data ##################################
   # deaths
-  wide_deaths <- wide_data[, !grepl("#Cases", colnames(wide_data)), with=FALSE]
-  id_deaths <- colnames(wide_deaths)[!grepl("#Deaths", colnames(wide_deaths))]
-  long_deaths <- data.table(melt(wide_deaths, id.vars = id_deaths, 
-                                 variable.name = "date", value.name = "deaths"))
+  ids <- c("countyFIPS", "CountyName", "StateName",  "State")
+  death_cols <- grep("#Deaths",names(wide_data),value=T)
+  long_deaths <- melt(wide_data, id.vars = ids, measure.vars=death_cols, 
+                      variable.name = "date", value.name = "deaths")
   long_deaths$date <- as.Date(sub("#Deaths_", "", long_deaths$date, fixed = T),
                               format = "%m-%d-%Y")
   
   long_deaths$deaths <- as.numeric(long_deaths$deaths)
+  
   # cases
-  wide_cases <- wide_data[, !grepl("#Deaths", colnames(wide_data)), with=FALSE]
-  id_cases <- colnames(wide_cases)[!grepl("#Cases", colnames(wide_cases))]
-  long_cases <- data.table(melt(wide_cases, id.vars = id_cases, 
-                                variable.name = "date", value.name = "cases"))
+  case_cols <- grep("#Cases",names(wide_data),value=T)
+  long_cases <- melt(wide_data, id.vars = ids, measure.vars=case_cols,
+                     variable.name = "date", value.name = "cases")
   long_cases$cases <- as.numeric(long_cases$cases)
   long_cases$date <- as.Date(sub("#Cases_", "", long_cases$date, fixed = T),
                              format = "%m-%d-%Y")
   
+
   # merge
   training <- suppressMessages(data.table(full_join(long_deaths, long_cases)))
 
-  ##################### Aggregate to State level ##########################
+  ##################### Aggregate to State level (wide format data) ##########################
   print("1.5/7: Aggregate to state level")
   
   to_sum <- c( "PopulationEstimate2018", 
@@ -105,8 +113,7 @@ setup_state_data <- function(data_path = "data") {
                "3-YrMortalityAge45-54Years2015-17", "3-YrMortalityAge55-64Years2015-17", 
                "3-YrMortalityAge65-74Years2015-17", "3-YrMortalityAge75-84Years2015-17", 
                "3-YrMortalityAge85+Years2015-17", "mortality2015-17Estimated",
-               "HPSAShortage", "HPSAServedPop", "HPSAUnderservedPop", 
-               "deaths", "cases")
+               "HPSAShortage", "HPSAServedPop", "HPSAUnderservedPop")
   
   # TODO: maybe be more careful with some of these (e.g. lat/lon, restriction dates)
   to_mean <- c("Rural-UrbanContinuumCode2013","POP_LATITUDE", "POP_LONGITUDE", "FracMale2017",
@@ -120,16 +127,68 @@ setup_state_data <- function(data_path = "data") {
   to_first <- c("CensusRegionName", 
                 "CensusDivisionName")
   
-  state_means <- training[,lapply(.SD,mean,na.rm=T),.SDcols=to_mean, by=list(State, date)]
-  state_sums <- training[,lapply(.SD,sum,na.rm=T),.SDcols=to_sum, by=list(State, date)]
-  state_first <- training[,lapply(.SD,function(x)x[1]),.SDcols=to_first, by=list(State, date)]
+  ids <- c("countyFIPS", "CountyName", "StateName", "State", "lat", "lon", 
+           "STATEFP", "COUNTYFP", "CensusRegionCode", "CensusDivisionCode", 
+           "FederalRegionCode", "SSABeneficiaryCode", "CoreBasedStatAreaCode(CBSA)Metropolitan/Micropolitan2018", 
+           "CoreBasedStatAreaName(CBSA)Metropolitan/Micropolitan2018", "CBSAIndicatorCode0=Not,1=Metro,2=Micro2018", 
+           "CBSACountyStatusCentralorOutlying2018", "MetropolitanDivisionCode2018", 
+           "MetropolitanDivisionName2018", "CombinedStatisticalAreaCode2018", 
+           "CombinedStatisticalAreaName2018", "UrbanInfluenceCode2013", 
+           "Economic-DependntTypologyCode2015", "Farming-DependentTypologyCode2015", 
+           "Mining-DependentTypologyCode2015", "Manufacturing-DepTypologyCode2015", 
+           "Fed/StGovt-DepdntTypolgyCodeFederal/StateGovernment2015", "RecreationTypolpgyCode2015", 
+           "Nonspecializd-DepTypologyCode2015", "LowEducationTypologyCode2015", 
+           "LowEmploymentTypologyCode2015", "HighPovertyTypologyCode2014", 
+           "PersistentPovrtyTypologyCode2014", "PersistentChildPovTypolCodeRelatedChildren2015", 
+           "PopulationLossTypologyCode2015", "RetirementDestnatnTyplgyCode2015", 
+           "BEAEconomicAreaCode2004", "BEAComponentEconomcAreaCode2004", 
+           "BEAEconomicAreaName2004", "BEAComponentEconomcAreaName2004", 
+           "HPSACode-PrimaryCare05/191=Whole,2=PartCounty2019", "HPSACode-PrimaryCare05/181=Whole,2=PartCounty2018", 
+           "HPSACode-PrimaryCare05/171=Whole,2=PartCounty2017", "HPSACode-PrimaryCare05/161=Whole,2=PartCounty2016", 
+           "HPSACode-PrimaryCare06/151=Whole,2=PartCounty2015", "HPSACode-PrimaryCare12/101=Whole,2=PartCounty2010", 
+           "HPSACode-Dentists05/191=Whole,2=PartCounty2019", "HPSACode-Dentists05/181=Whole,2=PartCounty2018", 
+           "HPSACode-Dentists05/171=Whole,2=PartCounty2017", "HPSACode-Dentists05/161=Whole,2=PartCounty2016", 
+           "HPSACode-Dentists06/151=Whole,2=PartCounty2015", "HPSACode-Dentists12/101=Whole,2=PartCounty2010", 
+           "HPSACode-MentalHealth05/191=Whole,2=PartCounty2019", "HPSACode-MentalHealth05/181=Whole,2=PartCounty2018", 
+           "HPSACode-MentalHealth05/171=Whole,2=PartCounty2017", "HPSACode-MentalHealth05/161=Whole,2=PartCounty2016", 
+           "HPSACode-MentalHealth06/151=Whole,2=PartCounty2015", "HPSACode-MentalHealth12/101=Whole,2=PartCounty2010", 
+           "ContiguousCounty#1", "ContiguousCounty#2", "ContiguousCounty#3", 
+           "ContiguousCounty#4", "ContiguousCounty#5", "ContiguousCounty#6", 
+           "ContiguousCounty#7", "ContiguousCounty#8", "ContiguousCounty#9", 
+           "ContiguousCounty#10", "ContiguousCounty#11", "ContiguousCounty#12", 
+           "ContiguousCounty#13", "ContiguousCounty#14")
+  
+  # try to guess aggregation for new columns
+  # TODO: go through these by hand and check how to handle the aggregation
+  other_cols <- setdiff(names(wide_data),c(ids, to_sum,to_mean,to_first, case_cols, death_cols))
+  other_cols <- setdiff(other_cols, c("Primary Care Physicians Ratio", "Dentist Ratio", "Mental Health Provider Ratio"))
+  # drop anything with 2020 (probably time varying)
+  other_cols <- other_cols[!grepl("2020",other_cols)]
+  other_cols <- setdiff(other_cols, rollback_cols)
+  oc_classes <- wide_data[,sapply(.SD,data.class),.SDcols=other_cols]
+  other_cols <- other_cols[oc_classes%in%c("numeric","integer")]
+  probably_integer <- wide_data[,sapply(.SD,function(x)all((x>=0) & (floor(x)==x),na.rm=T)),.SDcols = other_cols]
+
+  to_sum <- c(to_sum, other_cols[which(probably_integer)])
+  to_mean <- c(to_mean, other_cols[which(!probably_integer)])
+  
+  
+  state_means <- wide_data[,lapply(.SD,mean,na.rm=T),.SDcols=to_mean, by=list(State)]
+  state_sums <- wide_data[,lapply(.SD,sum,na.rm=T),.SDcols=to_sum, by=list(State)]
+  state_first <- wide_data[,lapply(.SD,function(x)x[1]),.SDcols=to_first, by=list(State)]
   
   ids <- c("State")
-  state_data <- merge(state_first, state_sums, by=c(ids,"date"))
-  state_data <- merge(state_data, state_means, by=c(ids,"date"))
+  state_data <- merge(state_first, state_sums, by=ids)
+  state_data <- merge(state_data, state_means, by=ids)
 
   data <- state_data
+  
+  
+  # add in outcomes from long format data
   outcomes <- c("cases","deaths")
+  state_training <- training[,lapply(.SD,sum,na.rm=T),.SDcols=outcomes, by=list(State,date)]
+  data <- merge(data,state_training, by = ids)
+  
   # generate diff'd outcomes
   diff_outcomes <- data[,lapply(.SD,function(x)c(0,diff(x))),by=ids,.SDcols=outcomes]
   diff_outcome_names <- sprintf("new_%s",outcomes)
@@ -141,6 +200,8 @@ setup_state_data <- function(data_path = "data") {
   
 
   # generate tv covariates
+  
+ 
   case_days_or_zero <- function(first_date, date) {
     case_days <- as.numeric(difftime(date, first_date, unit = "days"))
     case_days[which(is.na(case_days) | (!is.finite(case_days)) | (case_days < 0))] <- 0
@@ -166,13 +227,31 @@ setup_state_data <- function(data_path = "data") {
   set(data,,cd_names, case_days[,to_case_day_cols,with=FALSE])  
   set(data,,ind_names, indicators[,to_case_day_cols,with=FALSE])  
   
-  tv_covariates <- c("days",cd_names, ind_names, outcomes)
+  # google mobility data 
+  # https://github.com/Yu-Group/covid19-severity-prediction/tree/master/data/county_level/raw/google_mobility/README.md
+  gmd_format <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}_.*"
+  gmd_cols <- grep(gmd_format, names(wide_data), value=T)
+  long_gmd <- melt(wide_data, id.vars = ids, measure.vars=gmd_cols,
+                   variable.name = "variable", value.name = "value")
+  
+  long_gmd[,date:=as.Date(sub("_.*", "", variable, fixed = T),
+                          format = "%Y-%m-%d")]
+  long_gmd[,gmd_location:=gsub(".*_","",variable)]
+  state_gmd <- long_gmd[,list(value=mean(value,na.rm=T)),by=list(State,date,gmd_location)]
+  gmd_processed <- dcast(state_gmd, State+date~gmd_location, value.var="value", fill=0)
+  gmd_covs <- setdiff(names(gmd_processed),c("State","date"))
+  data <- merge(data, gmd_processed, by=c("State","date"))
+  
+  tv_covariates <- c("days",cd_names, ind_names, outcomes,gmd_covs)
 
   ##########
   # add logged covariates
+  # data runs out of allocated columns about here
+  data <- alloc.col(data,length(to_sum)*3)
   
   bl_log_names <- sprintf("log_%s",to_sum)
   logged_baseline <- data[,lapply(.SD, function(x)log(x+1)),.SDcols=to_sum]
+  
   set(data, , bl_log_names, logged_baseline[,to_sum,with=FALSE])
   baseline_covariates <- c(baseline_covariates, bl_log_names)
   
@@ -206,9 +285,11 @@ setup_state_data <- function(data_path = "data") {
   
   # I think just rolling things up handled NAs so ignoring this for now
   covariate_NAs <- unlist(data[,lapply(.SD,function(x)sum(is.na(x))),.SDcols=c(baseline_covariates, tv_covariates)])
-  covariate_NAs[which(covariate_NAs!=0)]
+  cv_w_missing <- names(covariate_NAs[which(covariate_NAs!=0)])
   if(any(covariate_NAs!=0)){
-    stop("found NAs in covariates. Update script to handle this")
+    warning("found NAs in covariates. dropping these for now")
+    baseline_covariates <- setdiff(baseline_covariates, cv_w_missing)
+    tv_covariates <- setdiff(tv_covariates, cv_w_missing)
   }
 
 
