@@ -21,9 +21,11 @@ generate_task <- function(data, outcome, covariates, ids, first_window = 20, tim
   nodes <- list(
     outcome = outcome,
     covariates = covariates,
-    time = "days",
-    id = ids
+    time = "days"
   )
+  # ,
+  #   id = ids
+  # )
 
   task <- make_sl3_Task(data,
     nodes = nodes,
@@ -126,17 +128,13 @@ generate_learners <- function(metalearner_stratified = TRUE, stack = NULL) {
       )
 
     ### screeners
-    screener_lasso <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
-                                   threshold = 1e-3)
-    #screener_lasso_flex <- make_learner(Lrnr_screener_coefs, lrnr_lasso,
-                                        #threshold = 1e-3)
+    screener_rf <- make_learner(Lrnr_screener_randomForest, nVar=250, ntree=200, mtry=20)
+    
     # pipelines
-    screen_lasso_pipe <- make_learner(Pipeline, screener_lasso, stack)
-    #screen_lasso_flex_pipe <- make_learner(Pipeline, screener_lasso_flex,
-                                           #stack)
+    screen_pipe <- make_learner(Pipeline, screener_rf, stack)
 
     ### final stack
-    stack <- make_learner(Stack, screen_lasso_pipe)
+    stack <- make_learner(Stack, screen_pipe)
   }
 
   ### metalearner

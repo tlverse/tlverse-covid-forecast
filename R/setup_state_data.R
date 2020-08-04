@@ -240,7 +240,7 @@ setup_state_data <- function(data_path = "data") {
   state_gmd <- long_gmd[,list(value=mean(value,na.rm=T)),by=list(State,date,gmd_location)]
   gmd_processed <- dcast(state_gmd, State+date~gmd_location, value.var="value", fill=0)
   gmd_covs <- setdiff(names(gmd_processed),c("State","date"))
-  data <- merge(data, gmd_processed, by=c("State","date"))
+  data <- merge(data, gmd_processed, by=c("State","date"), all.x=TRUE)
   
   tv_covariates <- c("days",cd_names, ind_names, outcomes,gmd_covs)
 
@@ -281,7 +281,13 @@ setup_state_data <- function(data_path = "data") {
   test_indexes <- which(is.na(lagged_outcomes$cases))
   training_indexes <- which(!is.na(lagged_outcomes$cases))
   ################################## imputation ################################
-  print("4/7: Imputing covariates, stratified by state")
+  print("4/7: Imputing covariates")
+  
+  
+  covariates <- c(baseline_covariates, tv_covariates)
+  X <- data[,covariates, with = FALSE]
+  processedX <- process_data(X, strata = NULL)
+  set(data, , names(processedX), processedX)
   
   # I think just rolling things up handled NAs so ignoring this for now
   covariate_NAs <- unlist(data[,lapply(.SD,function(x)sum(is.na(x))),.SDcols=c(baseline_covariates, tv_covariates)])

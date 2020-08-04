@@ -13,6 +13,7 @@ run_analysis <- function(outcome,processed){
   task <- generate_task(data, outcome, covariates = covariates, 
                         ids = processed$ids, batch = batch_size, val_size = batch_size)
   
+  
   sl_fit <- sl$train(task)
   
   # structure data for cv predictions
