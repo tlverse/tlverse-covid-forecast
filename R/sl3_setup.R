@@ -2,7 +2,7 @@
 #' @import tidyverse
 #' @import origami
 
-generate_task <- function(data, outcome, covariates, ids, first_window = 20, time = data$days,
+generate_task <- function(data, outcome, covariates, ids, first_window = 4, time = data$days,
                           t = max(data$days), batch = 1, val_size = 7) {
 
   id_vec <- unlist(data[,ids,with=FALSE])
